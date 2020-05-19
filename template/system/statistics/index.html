@@ -1,0 +1,294 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">报表统计</div>
+    <ul>
+        <li class="{if $operation == 'sale'}active{/if}"><a href="{php echo $this->createWebUrl('statistics', array('op'=>'sale'))}">交易额统计</a></li>
+        <li class="{if $operation == 'recharge'}active{/if}"><a href="{php echo $this->createWebUrl('statistics', array('op'=>'recharge'))}">余额统计</a></li>
+    </ul>
+</div>
+{if $operation == 'sale'}
+<div class="dm-container">
+<div class="dm-content">
+<style type="text/css">
+.input-group-select {
+    float: right;
+}
+</style>
+<form action="./index.php" method="get" class="form-horizontal table-search">
+    <input type="hidden" name="c" value="site" />
+    <input type="hidden" name="a" value="entry" />
+    <input type="hidden" name="m" value="deam_food" />
+    <input type="hidden" name="do" value="statistics" />
+    <input type="hidden" name="version_id" value="{php echo intval($_GPC['version_id'])}" />
+    <input type="hidden" name="op"  value="sale" />
+    <div class="page-toolbar">
+    	<div class="input-group">
+    		<span class="input-group-select">
+				<select name="type" class='form-control' style="width:100px;padding:0 5px;">
+	                <option value='0' {if $_GPC['type']==0}selected="selected"{/if}>交易额</option>
+	                <option value='1' {if $_GPC['type']==1}selected="selected"{/if}>交易量</option>
+	            </select>
+    		</span>
+    		<span class="input-group-select">
+				<select name="day" class='form-control' style="width:100px;padding:0 5px;">
+	                <option value=''>日期</option>
+	            </select>
+    		</span>
+    		<span class="input-group-select">
+    			<select name="month" class='form-control' style="width:100px;padding:0 5px;">
+	                <option value=''>月份</option>
+	                {loop $months $m}
+	                <option value="{$m['data']}"  {if $m['selected']}selected="selected"{/if}>{$m['data']}月</option>
+	                {/loop}
+	            </select>
+    		</span>
+    		<span class="input-group-select">
+    			<select name="year" class='form-control' style="width:100px;padding:0 5px;">
+	                {loop $years $y}
+	                <option value="{$y['data']}"  {if $y['selected']}selected="selected"{/if}>{$y['data']}年</option>
+	                {/loop}
+	            </select>
+    		</span>
+    		<span class="input-group-select">
+		        <select name="storeid" class="form-control" style="width:250px;padding:0 5px;">
+		            <option value="">全部门店</option>
+		            {loop $storeList $storeItem}
+		            <option value="{$storeItem['id']}" {if $store_id == $storeItem['id']} selected="" {/if}>{$storeItem['name']}</option>
+		            {/loop}
+		        </select>
+		    </span>
+    		<span class="input-group-btn">
+    			<button class="btn btn-primary" type="submit"> 搜索</button>
+    		</span>
+    	</div>
+	</div>
+</form>
+<div style="clear: both;margin-bottom: 15px;"></div>
+<div class="panel panel-default">
+    <div class='panel-heading'>
+    {if empty($type)}交易额{else}交易量{/if}：<span style="color:red; ">{$totalcount}</span>，
+        最高{if empty($type)}交易额{else}交易量{/if}：<span style="color:red; ">{$maxcount}</span> {if !empty($maxcount_date)}<span>({$maxcount_date}</span>){/if}
+    </div>
+    <div class="panel-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style='width:150px;'>
+                        {if empty($_GPC['month'])}月份{else}日期{/if}
+                    </th>
+                    <th style='width:200px;'>{if empty($type)}交易额{else}交易量{/if}</th>
+                    <th style="width: 80px;">所占比例</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop $list $row}
+                <tr>
+                    <td>{$row['data']}</td>
+                    <td>{$row['count']}</td>
+                    <td><span class="process-num" style="color:#000">{php echo empty($row['percent'])?'':$row['percent'].'%'}</span></td>
+                    <td>
+                       <div class="progress">
+                           <div style="width: {$row['percent']}%;" class="progress-bar progress-bar-info" ></div>
+                       </div>
+                    </td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script language='javascript'>
+    function get_days(){
+        var year = $('select[name=year]').val();
+        var month =$('select[name=month]').val();
+        var day  = $('select[name=day]');
+       day.get(0).options.length = 0 ;
+        if(month==''){
+	   day.append("<option value=''>日期</option");
+            return;
+        }
+       
+        day.get(0).options.length = 0 ;
+        day.append("<option value=''>0</option").attr('disabled',true);
+        $.post("{php echo $this->createWebUrl('statistics',array('op'=>'get_day'))}",{year:year,month:month},function(days){
+             day.get(0).options.length = 0 ;
+             day.removeAttr('disabled');
+             days =parseInt(days);
+             day.append("<option value=''>日期</option");
+             for(var i=1;i<=days;i++){
+                 day.append("<option value='" + i +"'>" + i + "日</option");
+             }
+          
+             {if !empty($day)}
+                day.val( {$day});
+             {/if}
+        })
+    }
+    $('select[name=month]').change(function(){
+           get_days();
+    })
+    
+    get_days();
+ </script>
+</div>
+</div>
+{elseif $operation == 'recharge'}
+<div class="dm-container">
+    <p style="margin-bottom: 10px;font-size: 16px; font-weight: 600;">充值概览<span style="font-size: 12px;color: #999;font-weight: normal">包含后台手动充值数据、自行充值数据、充值赠送金额数据</span></p>
+    <div class="layui-row layui-col-space20">
+        <div class="layui-col-sm3">
+            <div class="data-box">
+                <p class="title">今日充值(元)</p> <p class="num num_1">-</p>
+            </div>
+        </div>
+        <div class="layui-col-sm3">
+            <div class="data-box">
+                <p class="title">近7日充值(元)</p> <p class="num num_2">-</p>
+            </div>
+        </div>
+        <div class="layui-col-sm3">
+            <div class="data-box">
+                <p class="title">累计充值(元)</p> <p class="num num_3">-</p>
+            </div>
+        </div>
+        <div class="layui-col-sm3">
+            <div class="data-box">
+                <p class="title">沉淀余额(元)</p> <p class="num num_4">-</p>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form">
+        <div class="layui-form-item">
+
+            <div class="layui-inline">
+                <label class="layui-form-label" style="width: auto">筛选日期</label>
+                <div class="layui-input-inline" style="width: 200px;position: relative;">
+                    <input type="text" name="date_range" id="date_range" value="{$dateRange}" autocomplete="off" class="layui-input" readonly>
+                </div>
+                <button class="layui-btn layui-btn-danger imfox-filter" lay-submit lay-filter="filter">筛选</button>
+            </div>
+
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div id="imfox-echarts" style="width:100%;height:400px"></div>
+        </div>
+    </div>
+</div>
+<!--<script type="text/javascript" src="../addons/deam_food/static/js/dist/echarts/echarts.min.js"></script>-->
+<script type="text/javascript">
+    layui.use(['laydate', 'form'], function(){
+        var laydate = layui.laydate, form = layui.form;
+        laydate.render({
+            elem: '#date_range',
+            range: '~',
+            position: 'abolute',
+            value: '{$dateRange}'
+        });
+        var load;
+        $.ajax({
+            type: "post",
+            dataType: "json",
+            url: "{php echo $this->createWebUrl('statistics', array('op' => 'get_recharge_data'))}",
+            cache: false,
+            data: null,
+            beforeSend:function(){
+                load = layer.load(2);
+            },
+            success: function(res){
+                layer.close(load);
+                if(res.status == '1'){
+                    $('.num_1').text(res.result.todayRecharge);
+                    $('.num_2').text(res.result.prev7DayRechargeNum);
+                    $('.num_3').text(res.result.totalRechargeNum);
+                    $('.num_4').text(res.result.lastRechargeNum);
+                }
+            }
+        });
+        var chart = null;
+        var getHighChartsData = function (dateRange) {
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{php echo $this->createWebUrl('statistics', array('op' => 'get_recharge_list'))}",
+                cache: false,
+                data: {data_range: dateRange},
+                beforeSend:function(){
+                    load = layer.load(2);
+                },
+                success: function(res){
+                    layer.close(load);
+                    if(res.status == '1'){
+                        //
+
+                        var myChart = echarts.init(document.getElementById('imfox-echarts'));
+
+                        // 指定图表的配置项和数据
+                        var option = {
+                            title: {
+                                text: ''
+                            },
+                            tooltip: {
+                                trigger: 'axis'
+                            },
+                            legend: {
+                                data:['充值','消费'],
+                                align: 'left'
+                            },
+                            grid: {
+                                left: '3%',
+                                right: '4%',
+                                bottom: '3%',
+                                containLabel: true
+                            },
+                            toolbox: {
+                                feature: {
+                                    saveAsImage: {}
+                                }
+                            },
+                            xAxis: {
+                                type: 'category',
+                                boundaryGap: false,
+                                data: res.result.date
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    name:'充值',
+                                    type:'line',
+                                    stack: '总量',
+                                    data: res.result.recharge
+                                },
+                                {
+                                    name:'消费',
+                                    type:'line',
+                                    stack: '总量',
+                                    data: res.result.pay
+                                }
+                            ]
+                        };
+
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                        //var myChart = echarts.init(document.getElementById('imfox-echarts'));
+
+                        //
+                    }else{
+                        layer.msg(res.result.message);
+                    }
+                }
+            });
+        }
+        getHighChartsData("{$dateRange}");
+        form.on('submit(filter)', function(data){
+            getHighChartsData(data.field.date_range);
+            return false;
+        });
+    });
+</script>
+{/if}
+{template 'system/common/footer'}

@@ -1,0 +1,318 @@
+.wrapper {
+    overflow-x: hidden;
+}
+.wrapper {
+    display: block;
+    margin: 0 auto;
+    background: #fff;
+    height: 100vh;
+    padding-top: 60px;
+    box-sizing: border-box;
+    overflow-y: hidden;
+}
+@media screen and (min-width: 1450px) {
+    .wrapper, .toptitle {
+        width: 1450px;
+    }
+
+    .boxLeft {
+        float: left;
+        width: 35%;
+        box-sizing: border-box;
+    }
+
+    .boxRight {
+        float: left;
+        width: 65%;
+        box-sizing: border-box;
+    }
+
+    .chooseGoodsWarp {
+        width: 840px;
+    }
+
+    .boxLeft .search-tag-btn, .boxLeft .search-tag-btn:active {
+        padding: 0 65px;
+    }
+
+    .foodsKinds .foodsDescript {
+        width: 235px;
+    }
+
+    .foodsKinds .foodsDescript:nth-child(3n+0) {
+        margin-right: 15px;
+    }
+
+    .foodsKinds .foodsDescript:first-child, .foodsKinds .foodsDescript:nth-child(2), .foodsKinds .foodsDescript:nth-child(3) {
+        margin-top: 0;
+    }
+
+    .chooseGoodsWarp .listNav {
+        flex-wrap: nowrap;
+    }
+
+    .chooseGoodsWarp .listNav .swiperBox {
+        width: 490px;
+    }
+
+    .chooseGoodsWarp .allProduct {
+        padding-left: 15px;
+    }
+
+    .chooseGoodsWarp .swiper-container {
+        margin: 0 30px;
+    }
+
+    .chooseGoodsWarp .swiperBox .swiper-button-prev {
+        left: 115px;
+    }
+
+    .chooseGoodsWarp .listNav .searchBox {
+        width: 235px;
+        margin-top: 0;
+        margin-left: 0;
+    }
+}
+
+@media screen and (max-width: 1450px) {
+    .wrapper, .toptitle {
+        width: 1180px;
+    }
+
+    .boxLeft {
+        float: left;
+        width: 40%;
+        box-sizing: border-box;
+    }
+
+    .boxRight {
+        float: left;
+        width: 60%;
+        box-sizing: border-box;
+    }
+
+    .chooseGoodsWarp {
+        width: 550px;
+    }
+
+    .boxLeft .search-tag-btn, .boxLeft .search-tag-btn:active {
+        padding: 0 45px;
+    }
+
+    .foodsKinds .foodsDescript {
+        width: 240px;
+    }
+
+    .foodsKinds .foodsDescript:first-child, .foodsKinds .foodsDescript:nth-child(2) {
+        margin-top: 0;
+    }
+
+    .chooseGoodsWarp .listNav {
+        flex-wrap: wrap;
+        padding-right: 32px;
+    }
+
+    .chooseGoodsWarp .listNav .swiperBox {
+        width: 500px;
+    }
+
+    .chooseGoodsWarp .allProduct {
+        padding-left: 30px;
+    }
+
+    .chooseGoodsWarp .swiper-container {
+        margin: 0 30px;
+    }
+
+    .chooseGoodsWarp .swiperBox .swiper-button-prev {
+        left: 125px;
+    }
+
+    .chooseGoodsWarp .listNav .searchBox {
+        width: 500px;
+        margin-top: 20px;
+        margin-left: 20px;
+    }
+}
+@media screen and (max-width: 1300px) {
+    .payOrderWrap .wrapContent .orderDetailPart {
+        padding: 10px 30px;
+        margin: 10px auto 10px 0;
+        max-height: 450px;
+        overflow-y: scroll;
+    }
+
+    .returnOrderWrap .returnDetailPart .detailLeft {
+        height: 420px;
+    }
+
+    .returnOrderWrap .returnDetailPart .orderProductList {
+        max-height: 334px;
+    }
+
+    .inputGoodsWrap .contentSection {
+        min-height: 500px;
+        max-height: 530px;
+        overflow-y: scroll;
+    }
+
+    .contentSection.row{
+        height: 550px;
+    }
+}
+@media screen and (min-width: 1280px) {
+    .payOrderWrap .wrapContent .orderDetailPart {
+        padding: 20px 30px;
+        margin: 0;
+        max-height: 450px;
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+
+    .returnOrderWrap .returnDetailPart .detailLeft {
+        height: 510px;
+    }
+
+    .returnOrderWrap .returnDetailPart .orderProductList {
+        max-height: 375px;
+    }
+
+    .inputGoodsWrap .contentSection {
+        min-height: 550px;
+        max-height: 620px;
+        overflow-y: scroll;
+    }
+    .contentSection.row{
+        height: 600px;
+    }
+}
+@media screen and (max-width: 1050px) {
+    .wrapper{
+        width: 1024px;
+    }
+
+    .smartKey_content .keyItem a {
+        padding: 5px 15px;
+        margin: 10px 0;
+    }
+}
+.boxLeft {
+    position: relative;
+    height: 100%;
+}
+.goodsOrder, .userOrders {
+    display: none;
+    position: relative;
+}
+.boxLeft > div, .boxRight > div {
+    box-sizing: border-box;
+    border-radius: 4px;
+}
+.goodsOrder.active, .userOrders.active {
+    display: block;
+    padding: 0 20px;
+}
+.goodsOrder .goodsOrder_content, .userOrders .userOrders_content {
+    max-height: calc(100vh - 450px);
+    max-height: -webkit-calc(100vh - 450px);
+    max-height: -moz-calc(100vh - 450px);
+    overflow-y: scroll;
+    min-height: 250px;
+}
+.goodsOrder .table, .userOrders .table {
+    position: relative;
+    z-index: 1;
+}
+.goodsOrder .guaArea, .userOrders .guaArea {
+    text-align: center;
+    font-size: 90px;
+    font-weight: 600;
+    color: #e6e6e6;
+    /* display: none; */
+    position: absolute;
+    width: calc(100% - 40px);
+    height: 100px;
+    line-height: 100px;
+    z-index: 0;
+    top: 50%;
+    margin-top: -50px;
+}
+.boxLeft .payOrder {
+    padding: 20px;
+    height: 150px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 1;
+}
+.boxLeft .payOrder .payOrder_content {
+    border-top: 1px solid #e6e6e6;
+}
+.boxLeft .payOrder .payOrder_content .orderTotal {
+    margin: 0;
+    padding: 20px 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+.boxLeft .payOrder .payOrder_content .orderTotal span:nth-child(2) {
+    color: #ff6363;
+}
+.boxLeft .payOrder .payOrder_content .pay-order-btn {
+    display: flex;
+    width: 100%;
+    background: #FD9C02;
+    color: #fff;
+    border-radius: 5px;
+    padding: 12px;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 22px;
+}
+
+.boxRight {
+    background: url(../images/desktop/bg_01.png) top center no-repeat;
+    background-size: cover;
+    display: flex;
+    height: 92vh;
+    padding: 20px;
+    justify-content: space-between;
+    padding-right: 15px;
+}
+.goodsOrder_content::-webkit-scrollbar, .userOrders_content::-webkit-scrollbar {
+    width: 5px;
+    height: auto;
+}
+::-webkit-scrollbar {
+    width: 2px;
+    height: auto;
+}
+.goodsOrder_content::-webkit-scrollbar-button, .userOrders_content::-webkit-scrollbar-button {
+    height: 0;
+    background: transparent;
+}
+::-webkit-scrollbar-button {
+    height: 0;
+    background: transparent;
+}
+.goodsOrder_content::-webkit-scrollbar-corner, .userOrders_content::-webkit-scrollbar-corner {
+    background: #f5be68;
+}
+::-webkit-scrollbar-corner {
+    background: #f5be68;
+}
+.goodsOrder_content::-webkit-scrollbar-thumb, .userOrders_content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .2);
+    border-radius: 30px;
+}
+::-webkit-scrollbar-thumb {
+    background: #f5be68;
+    border-radius: 4px;
+}
+.goodsOrder_content::-webkit-scrollbar-track, .userOrders_content::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}

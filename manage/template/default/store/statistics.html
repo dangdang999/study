@@ -1,0 +1,285 @@
+{mtemplate '_header'}
+<div class="dm-subnav">
+    <div class="subnav-title">报表统计</div>
+    <ul>
+        <li class="{if $operation == 'sale'}active{/if}"><a href="{php echo manage_url(array('r'=>'store','ac'=>'statistics','op'=>'sale'))}">交易额统计</a></li>
+        <li class="{if $operation == 'goods'}active{/if}"><a href="{php echo manage_url(array('r'=>'store','ac'=>'statistics','op'=>'goods'))}">商品销售报表</a></li>
+    </ul>
+</div>
+<div class="dm-container">
+<div class="dm-content">
+<style type="text/css">
+.input-group-select {
+    float: right;
+}
+</style>
+{if $operation == 'sale'}
+<form action="./index.php" method="get" class="form-horizontal table-search">
+    <input type="hidden" name="c" value="site" />
+    <input type="hidden" name="a" value="entry" />
+    <input type="hidden" name="m" value="deam_food" />
+    <input type="hidden" name="do" value="manage" />
+    <input type="hidden" name="r" value="store" />
+    <input type="hidden" name="ac" value="statistics" />
+    <input type="hidden" name="op"  value="sale" />
+    <input type="hidden" name="i"  value="{$uniacid}" />
+    <div class="page-toolbar">
+    	<div class="input-group">
+    		<span class="input-group-select">
+				<select name="type" class='form-control' style="width:100px;padding:0 5px;">
+	                <option value='0' {if $_GPC['type']==0}selected="selected"{/if}>交易额</option>
+	                <option value='1' {if $_GPC['type']==1}selected="selected"{/if}>交易量</option>
+	            </select>
+    		</span>
+    		<span class="input-group-select">
+				<select name="day" class='form-control' style="width:100px;padding:0 5px;">
+	                <option value=''>日期</option>
+	            </select>
+    		</span>
+    		<span class="input-group-select">
+    			<select name="month" class='form-control' style="width:100px;padding:0 5px;">
+	                <option value=''>月份</option>
+	                {loop $months $m}
+	                <option value="{$m['data']}"  {if $m['selected']}selected="selected"{/if}>{$m['data']}月</option>
+	                {/loop}
+	            </select>
+    		</span>
+    		<span class="input-group-select">
+    			<select name="year" class='form-control' style="width:100px;padding:0 5px;">
+	                {loop $years $y}
+	                <option value="{$y['data']}"  {if $y['selected']}selected="selected"{/if}>{$y['data']}年</option>
+	                {/loop}
+	            </select>
+    		</span>
+    		<span class="input-group-btn">
+    			<button class="btn btn-primary" type="submit"> 搜索</button>
+    		</span>
+    	</div>
+	</div>
+</form>
+<div style="clear: both;margin-bottom: 15px;"></div>
+<div class="panel panel-default">
+    <div class='panel-heading'>
+    {if empty($type)}交易额{else}交易量{/if}：<span style="color:red; ">{$totalcount}</span>，
+        最高{if empty($type)}交易额{else}交易量{/if}：<span style="color:red; ">{$maxcount}</span> {if !empty($maxcount_date)}<span>({$maxcount_date}</span>){/if}
+    </div>
+    <div class="panel-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style='width:150px;'>
+                        {if empty($_GPC['month'])}月份{else}日期{/if}
+                    </th>
+                    <th style='width:200px;'>{if empty($type)}交易额{else}交易量{/if}</th>
+                    <th style="width: 80px;">所占比例</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop $list $row}
+                <tr>
+                    <td>{$row['data']}</td>
+                    <td>{$row['count']}</td>
+                    <td><span class="process-num" style="color:#000">{php echo empty($row['percent'])?'':$row['percent'].'%'}</span></td>
+                    <td>
+                       <div class="progress">
+                           <div style="width: {$row['percent']}%;" class="progress-bar progress-bar-info" ></div>
+                       </div>
+                    </td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script language='javascript'>
+    function get_days(){
+        var year = $('select[name=year]').val();
+        var month =$('select[name=month]').val();
+        var day  = $('select[name=day]');
+       day.get(0).options.length = 0 ;
+        if(month==''){
+	   day.append("<option value=''>日期</option");
+            return;
+        }
+       
+        day.get(0).options.length = 0 ;
+        day.append("<option value=''>0</option").attr('disabled',true);
+        $.post("{php echo manage_url(array('r'=>'store','ac'=>'statistics','op'=>'get_day'))}",{year:year,month:month},function(days){
+             day.get(0).options.length = 0 ;
+             day.removeAttr('disabled');
+             days =parseInt(days);
+             day.append("<option value=''>日期</option");
+             for(var i=1;i<=days;i++){
+                 day.append("<option value='" + i +"'>" + i + "日</option");
+             }
+          
+             {if !empty($day)}
+                day.val( {$day});
+             {/if}
+        })
+    }
+    $('select[name=month]').change(function(){
+           get_days();
+    })
+    
+    get_days();
+ </script>
+ {elseif $operation == 'goods'}
+<style type="text/css">
+.page-toolbar {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    height: 35px;
+    line-height: 1;
+    vertical-align: middle;
+    margin-bottom: 15px;
+}
+.input-group-select {
+    float: right;
+}
+</style>
+<form action="./index.php" method="get" class="form-horizontal table-search">
+    <input type="hidden" name="c" value="site" />
+    <input type="hidden" name="a" value="entry" />
+    <input type="hidden" name="m" value="deam_food" />
+    <input type="hidden" name="do" value="manage" />
+    <input type="hidden" name="r" value="store" />
+    <input type="hidden" name="ac" value="statistics" />
+    <input type="hidden" name="op"  value="goods" />
+    <input type="hidden" name="i"  value="{$uniacid}" />
+    <div class="page-toolbar">
+        <div class="input-group">
+            {php echo tpl_form_field_daterange("daterange",$daterange)}
+            <button class="btn btn-primary" type="submit"> 搜索</button>
+            <a class="btn btn-success" href="{php echo manage_url(array('r'=>'store','ac'=>'statistics','op'=>'goods','method'=>'export', 'daterange[start]' => $daterange['start'], 'daterange[end]' => $daterange['end']))}">导出</a>
+            <!-- <span class="input-group-select">
+                <select name="type" class='form-control' style="width:100px;padding:0 5px;">
+                    <option value='0' {if $_GPC['type']==0}selected="selected"{/if}>交易额</option>
+                    <option value='1' {if $_GPC['type']==1}selected="selected"{/if}>交易量</option>
+                </select>
+            </span>
+            <span class="input-group-select">
+                <select name="day" class='form-control' style="width:100px;padding:0 5px;">
+                    <option value=''>日期</option>
+                </select>
+            </span>
+            <span class="input-group-select">
+                <select name="month" class='form-control' style="width:100px;padding:0 5px;">
+                    <option value=''>月份</option>
+                    {loop $months $m}
+                    <option value="{$m['data']}"  {if $m['selected']}selected="selected"{/if}>{$m['data']}月</option>
+                    {/loop}
+                </select>
+            </span>
+            <span class="input-group-select">
+                <select name="year" class='form-control' style="width:100px;padding:0 5px;">
+                    {loop $years $y}
+                    <option value="{$y['data']}"  {if $y['selected']}selected="selected"{/if}>{$y['data']}年</option>
+                    {/loop}
+                </select>
+            </span> -->
+            <!-- <span class="input-group-btn">
+                <button class="btn btn-primary" type="submit"> 搜索</button>
+            </span> -->
+        </div>
+    </div>
+</form>
+<div class="table-responsive">
+    <table class="table we7-table table-hover">
+        <thead>
+        <tr>
+            <th style="width:80px;">
+                ID
+            </th>
+            <th style="width:200px;">商品名称</th>
+            <th class="text-center" style="width:80px;">总销量</th>
+            <th class="text-center" style="width:80px;">日均销量</th>
+            <th class="text-center" style="width:80px;">复购人次</th>
+            <th class="text-center" style="width:180px;">平均复购次数</th>
+            <th class="text-center" style="width:100px;">查看</th>
+        </tr>
+        </thead>
+        <tbody style="background: #fff">
+        {if empty($list)}
+        <tr><td colspan="6" style="text-align:center">还未添加商品！</td></tr>
+        {else}
+        {loop $list $item}
+        <tr>
+            <td style="width:40px;">{$item['id']}</td>
+            <td style="width:200px;">{$item['name']}</td>
+            <td style="width:80px;" class="text-center">{$item['allcount']}</td>
+            <td style="width:80px;" class="text-center">{$item['perdaycount']}</td>
+            <td style="width:180px;" class="text-center">{$item['buyAgainCount']}</td>
+            <td style="width:180px;" class="text-center">{$item['perBuyAgainCount']}</td>
+            <td class="text-center"><a class="text-primary" href="{php echo manage_url(array('r'=>'store','ac'=>'statistics','op'=>'detail','id'=>$item['id']))}">销售曲线</a></td>
+        </tr>
+        {/loop}
+        {/if}
+        </tbody>
+    </table>
+    {$pager}
+</div>
+{elseif $operation == 'detail'}
+<div class="col-sm-12">
+    <div class="panel panel-default">
+        <div class="panel-heading">[{$goodsinfo['name']}]销量趋势图</div>
+        <div class="panel-body">
+            <div id="container" style="min-width: 100%; height: 400px; margin: 0 auto"></div>
+        </div>
+    </div>
+</div>
+<script language="javascript" src="{$dmSiteroot}/addons/deam_food/static/js/dist/highcharts/highcharts.js"></script>
+<script type="text/javascript">
+$(function(){
+    $('#container').highcharts({
+        credits: {
+            enabled: false
+        },
+        chart: {
+            type: 'line'
+        },
+        title: {
+             text: '[{$goodsinfo["name"]}]最近30天销量趋势图',
+        },
+        subtitle: {
+            text: ''
+        },
+        colors: ['#0061a5','#ff0000'],
+        xAxis: {
+            categories: [{loop $datas $key $row}{if $key>0},{/if}"{$row['date']}"{/loop}]
+        },
+        yAxis: {
+            title: {
+                text: '订单数'
+            },allowDecimals:false
+        },
+        tooltip: {
+            enabled: false,
+            formatter: function() {
+                return '<b>'+ this.series.name +'</b><br>'+this.x +': '+ this.y +'°C';
+            }
+        },
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: true
+                },
+                enableMouseTracking: false
+            }
+        },
+        series: [
+            {
+               name: '订单数',
+               data: [{loop $datas $key $row}{if $key>0},{/if}{$row['order_count']}{/loop}]
+            }
+             ]
+    })
+})
+</script>
+
+ {/if}
+</div>
+</div>
+{mtemplate '_footer'}

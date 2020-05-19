@@ -1,0 +1,64 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">门店操作台</div>
+    <ul>
+        <li {if $_GPC['is_admin'] == '1'}class="active"{/if}><a href="{php echo $this->createWebUrl('manage',array('is_admin' => '1'))}">登录入口</a></li>
+	    <li><a href="{php echo $this->createWebUrl('operator')}">店员管理</a></li>
+        
+    </ul>
+</div>
+<div class="dm-container">
+	<div class="dm-content">
+		<table class="table we7-table table-form">
+			<tr>
+				<th class="text-left" colspan="2">门店操作台</th>
+			</tr>
+			<tr>
+				<td class="table-label" style="width: 200px;">门店操作台地址</td>
+				<td style="text-align: left"><a href='javascript:;' class="js-copy" title='点击复制链接' data-url="{$_W['siteroot']}addons/deam_food/manage.php?i={$_W['uniacid']}">{$_W['siteroot']}addons/deam_food/manage.php?i={$_W['uniacid']}</a></td>
+			</tr>
+			<tr>
+				<td class="table-label" style="width: 200px;">小程序端地址</td>
+				<td style="text-align: left"><a href='javascript:;' class="js-copy" title='点击复制链接' data-url="deam_food/manage/index/index">deam_food/manage/index/index</a>（如需要登录二维码，可到小程序公众后台点击右上角"工具-生成小程序码"，输入地址路径生成即可）</td>
+			</tr>
+			<tr>
+				<td class="table-label" style="width: 200px;">会员中心显示管理入口</td>
+				<td style="text-align: left">
+					<style>
+						.layui-form-switch{
+							box-sizing: content-box;
+						}
+					</style>
+					<div class="layui-form">
+						<input type="checkbox" {if $sysset['wxapp']['show_manage'] == '1'}checked{/if} lay-filter="showManage" name="zzz" lay-skin="switch" lay-text="显示|隐藏">
+					</div>
+				</td>
+			</tr>
+		</table>
+		<script type="text/javascript">
+			$('.js-copy').each(function(){
+		        util.clip(this, $(this).data('url'));
+		    });
+			layui.use('form', function(){
+				var form = layui.form;
+				form.on('switch(showManage)', function(data){
+					$.ajax({
+						"url": "{php echo $this->createWebUrl('settings', array('op' => 'update_show_manage'))}",
+						dataType: "json",
+						cache: false,
+						data: {
+							status: data.elem.checked
+						},
+						beforeSend: function () {
+
+						},
+						success: function (data) {
+							layer.msg('操作成功！');
+						}
+					});
+				});
+			});
+		</script>
+	</div>
+</div>
+{template 'system/common/footer'}

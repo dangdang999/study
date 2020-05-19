@@ -1,0 +1,50 @@
+{mtemplate '_header'}
+<style type="text/css">
+	body{
+		background: rgb(171, 78, 24);
+		{if !empty($settings['login_bg'])}
+		background: url("{media $settings['login_bg']}") no-repeat center fixed;
+	    -webkit-background-size: cover;
+	    -moz-background-size: cover;
+	    -o-background-size: cover;
+	    background-size: cover;
+		{/if}
+	}
+	body, html{
+		min-width: 100%;
+		max-width: 100%;
+	}
+</style>
+<div class="login-box text-center animated fadeInDown">
+    <div style="text-align: center;margin-bottom: 20px;">
+        <img src="{if empty($settings['login_logo'])}../addons/deam_food/icon.jpg{else}{media $settings['login_logo']}{/if}" width="120px" height="120px" style="border-radius: 50%">
+    </div>
+    <h3 style="color: #fff;">欢迎使用门店管理后台</h3>
+    <form action="" method="post" role="form" class="m-t" id="form">
+        <div class="form-group">
+            <input type="text" name="username" class="form-control username" placeholder="用户名">
+        </div>
+        <div class="form-group">
+            <input type="password" name="password" class="form-control password" placeholder="密码">
+        </div>
+        <input type="submit" name="submit" value="提交" class="btn btn-primary block full-width m-b" />
+		<input type="hidden" name="token" value="{$_W['token']}" />
+    </form>
+</div>
+<script type="text/javascript">
+$(function(){
+	$('#form').submit(function(){
+		if($('.username').isEmpty()){
+			util.message('请输入要登录的用户名');
+			return false;
+		}
+		if($('.password').isEmpty()){
+			util.message('请输入密码');
+			return false;
+		}
+	})
+	
+	
+});
+</script>
+{mtemplate '_footer'}

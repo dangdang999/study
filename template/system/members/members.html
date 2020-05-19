@@ -1,0 +1,266 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">会员中心</div>
+    <ul>
+        <li class="{if $operation == 'display' || $operation == 'detail'}active{/if}"><a href="{php echo $this->createWebUrl('members', array('op'=>'display'))}">会员列表</a></li>
+    </ul>
+</div>
+<div class="dm-container">
+<div class="dm-content">
+{if $operation == 'display'}
+<style type="text/css">
+.page-toolbar {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    height: 35px;
+    line-height: 1;
+    vertical-align: middle;
+    margin-bottom: 15px;
+}
+.input-group-select {
+    float: right;
+}
+</style>
+<form action="./index.php" method="get" class="form-horizontal" role="form">
+    <input type="hidden" name="c" value="site">
+    <input type="hidden" name="i" value="{$_W['uniacid']}">
+    <input type="hidden" name="a" value="entry">
+    <input type="hidden" name="op" value="display">
+    <input type="hidden" name="ac" value="index">
+    <input type="hidden" name="do" value="members">
+    <input type="hidden" name="m" value="deam_food">
+<div class="page-toolbar">
+    <div class="input-group">
+    <input type="text" style="width: 200px;float: right;" class="form-control" name="keyword" value="{$keywords}" placeholder="昵称/姓名/手机号">
+    <span class="input-group-btn">
+        <button type="submit" class="btn btn-primary">搜索</button>
+    </span>
+    </div>
+</div>        
+</form>
+<div class="table-responsive">
+    <table class="table we7-table table-hover">
+        <thead>
+        <tr>
+            <!-- <th style="width:40px;">
+                <input type="checkbox" name="checkall" value="" id="checkall" onclick="var ck = this.checked; $(':checkbox').each(function(){this.checked = ck});"/>
+            </th> -->
+            <th style="width:80px;">会员编号</th>
+            <th style="width:200px;">昵称</th>
+            <th style="width:180px;">姓名/手机号</th>
+            <th style="width:180px;">余额/积分</th>
+            <th class="text-center" style="width:200px;">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {if empty($list)}
+        <tr><td colspan="5" style="text-align:center">还没有会员</td></tr>
+        {else}
+        {loop $list $item}
+        <tr>
+            <!-- <td><input type="checkbox" name="items[]" value="{$item['id']}" class="items" /></td> -->
+            <td>{$item['member_id']}</td>
+            <td>
+                {if !empty($item['tag']['headimgurl'])}
+                <img src="{$item['tag']['headimgurl']}" width="40" height="40" style="border-radius: 40px;">
+                {/if}
+                {if !empty($item['tag']['nickname'])}
+                {$item['tag']['nickname']}
+                {else}
+                {$item['nickname']}
+                {/if}
+                </td>
+            <td>{if empty($item['realname'])}未完善{else}{$item['realname']}{/if}<br>{if empty($item['telephone'])}未完善{else}{$item['telephone']}{/if}</td>
+            <td class="text-left">
+                <span>余额：<text class="text-primary">{$item['credit2']}</text></span>
+                <br>
+                <span>积分：<text class="text-warning">{php echo intval($item['credit1'])}</text></span>
+            </td>
+            
+            <td class="text-center">
+                <a href="{php echo $this->createWebUrl('members', array('op'=>'detail','id'=>$item['member_id']))}" class="btn showtitle btn-default btn-sm" title="会员详情" style="padding: 2px 8px;color: #333;"><i class="icon icon-bianji"></i></a>
+                <a href="javascript:;" data-type="credit2" data-uid="{$item['member_id']}" data-title="余额" class="btn showtitle btn-default btn-sm modal-trade-credit2" title="余额操作" style="padding: 2px 8px;color: #333;"><i class="icon icon-yue1"></i></a>
+                <a href="javascript:;" data-type="credit1" data-uid="{$item['member_id']}" data-title="积分" class="btn showtitle btn-default btn-sm modal-trade-credit1" title="积分操作" style="padding: 2px 8px;color: #333;"><i class="icon icon-credit"></i></a>
+            </td>
+        </tr>
+        {/loop}
+        {/if}
+        </tbody>
+    </table>
+    {$pager}
+</div>
+<script type="text/javascript">
+require(['{MODULE_URL}static/js/dist/trade/trade.js'], function(trade){
+    trade.init();
+});
+</script>
+
+<script type="text/javascript">
+    require(['bootstrap'], function ($) {
+        $('.showimg').hover(function () {
+            $(this).popover('show');
+        }, function () {
+            $(this).popover('hide');
+        });
+        $('.showtitle').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+        $('.showpop').on('shown.bs.popover', function () {
+            $('.showpop').not(this).popover('hide');
+        });
+        $('[data-toggle="popover"]').popover("destroy").popover({
+            container: $(document.body)
+        });
+    });
+</script>
+{elseif $operation == 'detail'}
+<ul class="we7-page-tab" style="margin-top: 0;margin-top: -20px;margin-left: -20px;">
+    <li {if $method == 'basic'} class="active"{/if}><a href="{php echo $this->createWebUrl('members', array('op'=>'detail','id'=>$userInfo['member_id']))}">会员信息</a></li>
+    <li {if $method == 'order'} class="active"{/if}><a href="{php echo $this->createWebUrl('members', array('op'=>'detail','id'=>$userInfo['member_id'],'method'=>'order'))}">消费列表</a></li>
+    <li {if $method == 'credit2'} class="active"{/if}><a href="{php echo $this->createWebUrl('members', array('op'=>'detail','id'=>$userInfo['member_id'],'method'=>'credit2'))}">储值明细</a></li>
+    <li {if $method == 'credit1'} class="active"{/if}><a href="{php echo $this->createWebUrl('members', array('op'=>'detail','id'=>$userInfo['member_id'],'method'=>'credit1'))}">积分明细</a></li>
+</ul>
+{if $method == 'basic'}
+<form class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-1 control-label">会员编号</label>
+        <div class="col-sm-10">
+          <p class="form-control-static">{$userInfo['member_id']}</p>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">微信昵称</label>
+        <div class="col-sm-10">
+          <p class="form-control-static">{$userInfo['nickname']}</p>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">用户姓名</label>
+        <div class="col-sm-10">
+          <p class="form-control-static">{php echo empty($userInfo['realname']) ? '未完善' : $userInfo['realname']} <a href="javascript:;" class="text-primary editField" data-uid="{$userInfo['member_id']}" data-field="realname" data-value="{$userInfo['realname']}">编辑</a></p>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">手机号码</label>
+        <div class="col-sm-10">
+          <p class="form-control-static">{php echo empty($userInfo['telephone']) ? '未完善' : $userInfo['telephone']} <a href="javascript:;" class="text-primary editField" data-uid="{$userInfo['member_id']}" data-field="telephone" data-value="{$userInfo['telephone']}">编辑</a></p>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">账户积分</label>
+        <div class="col-sm-10">
+          <p class="form-control-static">{php echo intval($userInfo['credit1'])} <a href="javascript:;" data-type="credit1" data-uid="{$userInfo['member_id']}" data-title="积分" class="modal-trade-credit1 text-danger">充值</a></p>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-1 control-label">账户余额</label>
+        <div class="col-sm-10">
+          <p class="form-control-static">{$userInfo['credit2']}元 <a href="javascript:;" data-type="credit2" data-uid="{$userInfo['member_id']}" data-title="余额" class="modal-trade-credit2 text-danger">充值</a></p>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+require(['{MODULE_URL}static/js/dist/trade/trade.js?v=deam_f0od'], function(trade){
+    trade.init();
+});
+layui.use(['form','jquery','layer'], function(){
+    var form = layui.form,$=layui.jquery,layer=layui.layer,element = layui.element;
+    $('.editField').click(function(){
+        var field = $(this).data('field');
+        var uid = $(this).data('uid');
+        var oldValue = $(this).data('value');
+        layer.prompt({
+          value: oldValue,
+          title: '编辑',
+        }, function(value, index, elem){
+            jQuery.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{php echo $this->createWebUrl('members', array('op' => 'edit_field'))}",
+                cache: false,
+                data: {
+                    uid: uid,
+                    field: field,
+                    value: value
+                },
+                success: function(res){
+                    if(res.status == '1'){
+                        layer.alert(res.result.message, {icon: 1}, function(index2){
+                            window.location.reload()
+                        });
+                    }else{
+                        layer.msg(res.result.message, {icon: 2});
+                    }
+                    
+                }
+            });
+            layer.close(index);
+        });
+    });
+    
+})
+</script>
+{elseif $method == 'order'}
+<div class="table-responsive">
+    <table class="table we7-table table-hover">
+        <thead>
+        <tr>
+            <th style="width:180px;">订单号</th>
+            <th style="width:200px;">订单金额</th>
+            <th style="width:180px;">支付时间</th>
+            <th style="width:180px;">支付方式</th>
+        </tr>
+        </thead>
+        <tbody>
+        {if empty($list)}
+        <tr><td colspan="4" style="text-align:center">还没有订单</td></tr>
+        {else}
+        {loop $list $item}
+        <tr>
+            <td>{$item['ordersn']}</td>
+            <td>{$item['pay_price']}元</td>
+            <td>{$item['paytime']}</td>
+            <td>{if $item['pay_type']=='1'}微信支付{elseif $item['pay_type']=='2'}余额支付{/if}</td>
+        </tr>
+        {/loop}
+        {/if}
+        </tbody>
+    </table>
+    {$pager}
+</div>
+{elseif $method == 'credit1' || $method == 'credit2'}
+<div class="table-responsive">
+    <table class="table we7-table table-hover">
+        <thead>
+        <tr>
+            <th style="width:180px;">变更{if $method == 'credit1'}积分{elseif $method == 'credit2'}金额{/if}</th>
+            <th style="width:200px;">变更原因</th>
+            <th style="width:180px;">变更时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        {if empty($list)}
+        <tr><td colspan="3" style="text-align:center">还没有变更记录</td></tr>
+        {else}
+        {loop $list $item}
+        <tr>
+            <td>{if $item['num']>0}+{/if}{if $method == 'credit1'}{php echo intval($item['num'])}{elseif $method == 'credit2'}{$item['num']}{/if}</td>
+            <td>{$item['remark']}</td>
+            <td>{php echo date("Y-m-d H:i",$item['createtime'])}</td>
+        </tr>
+        {/loop}
+        {/if}
+        </tbody>
+    </table>
+    {$pager}
+</div>
+
+{/if}
+
+{/if}
+</div>
+</div>
+{template 'system/common/footer'}

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script> document.documentElement.style.fontSize =document.documentElement.clientWidth/750*40 +"px";</script>
+	<title>{$storeinfo['name']}</title>
+	<meta name="keywords" content="点餐小程序,点沐网络" />
+	<meta name="description" content="点餐小程序-点沐网络" />
+	<link href="{$dmSiteroot}web/resource/css/bootstrap.min.css?v=20170802" rel="stylesheet">
+	<link href="{$dmSiteroot}web/resource/css/common.css?v=20170802" rel="stylesheet">
+	<link href="{$dmSiteroot}addons/deam_food/static/css/animate.css" rel="stylesheet">
+	<link href="{$dmSiteroot}addons/deam_food/static/css/style.css?v=201711021935" rel="stylesheet">
+	<link href="{$dmSiteroot}addons/deam_food/static/js/dist/deamui/css/deamui.min.css?v={TIMESTAMP}" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="{$dmSiteroot}addons/deam_food/static/fonts/iconfont.css?v=201712052335">
+	<script type="text/javascript">
+	if(navigator.appName == 'Microsoft Internet Explorer'){
+		if(navigator.userAgent.indexOf("MSIE 5.0")>0 || navigator.userAgent.indexOf("MSIE 6.0")>0 || navigator.userAgent.indexOf("MSIE 7.0")>0) {
+			alert('您使用的 IE 浏览器版本过低, 推荐使用 Chrome 浏览器或 IE8 及以上版本浏览器.');
+		}
+	}
+	window.sysinfo = {
+		{if !empty($_W['uniacid'])}'uniacid': '{$_W['uniacid']}',{/if}
+		{if !empty($_W['acid'])}'acid': '{$_W['acid']}',{/if}
+		{if !empty($_W['openid'])}'openid': '{$_W['openid']}',{/if}
+		{if !empty($_W['uid'])}'uid': '{$_W['uid']}',{/if}
+		'isfounder': {if !empty($_W['isfounder'])}1{else}0{/if},
+		'siteroot': '{$dmSiteroot}',
+		'siteurl': '{$_W['siteurl']}',
+		'attachurl': '{$_W['attachurl']}',
+		'attachurl_local': '{$_W['attachurl_local']}',
+		'attachurl_remote': '{$_W['attachurl_remote']}',
+		'module' : {'url' : '{if defined('MODULE_URL')}{MODULE_URL}{/if}', 'name' : '{if defined('IN_MODULE')}{IN_MODULE}{/if}'},
+		'cookie' : {'pre': '{$_W['config']['cookie']['pre']}'},
+		'account' : {php echo json_encode($_W['account'])},
+	};
+	</script>
+	<script>var require = { urlArgs: 'v=20170802' };</script>
+	<script type="text/javascript" src="{$dmSiteroot}web/resource/js/lib/jquery-1.11.1.min.js"></script>
+	<script src="{$dmSiteroot}addons/deam_food/static/js/dist/jquery/jquery.gcjs.js"></script>
+	<script type="text/javascript" src="{$dmSiteroot}web/resource/js/lib/bootstrap.min.js"></script>
+	<script type="text/javascript" src="{$dmSiteroot}web/resource/js/app/util.js?v=20170802"></script>
+	<script type="text/javascript" src="{$dmSiteroot}web/resource/js/app/common.min.js?v=20170802"></script>
+	<script type="text/javascript" src="{$dmSiteroot}web/resource/js/require.js?v=20170802"></script>
+	<script type="text/javascript" src="{$dmSiteroot}addons/deam_food/static/js/dist/deamui/js/deamui.min.js?v={TIMESTAMP}"></script>
+</head>
+<style type="text/css">
+
+body,html{
+	max-width: 100%;
+	min-width: 100%;
+}
+.dm-navbar-header{
+	width: 100%;
+	left: 0;
+}
+.dm-navbar-header ul li.dropdown{
+	padding: 0 1rem;
+	min-width: 5rem;
+}
+.dm-navbar-header .dropdown-menu{
+	min-width: 5rem;
+}
+.dm-navbar-header .store-name {
+    line-height: 55px;
+    font-size: 0.8rem;
+    padding-left: 0.5rem;
+}
+.dm-stat .panel .panel-body .col-xs-6{
+	border-bottom: 1px solid #e7e7eb;
+	padding-top: 0.6rem
+}
+.dm-stat .panel .panel-body .col-xs-6:nth-child(1),.dm-stat .panel .panel-body .col-xs-6:nth-child(2){
+	padding-bottom: 0.3rem
+}
+.dm-stat .panel .panel-body .col-xs-6:nth-child(2){
+    border-right: none;
+}
+.dm-stat .panel .panel-body .col-xs-6:nth-child(3){
+	border-bottom: none;
+}
+.dm-container {
+    position: relative;
+    display: block;
+    margin-left:0px;
+    margin-top: 68px;
+    padding: 0px;
+}
+.panel{
+	border-radius: 0;
+	margin-top: 0.4rem;
+}
+.col-xs-3 {
+    width: 33.333%;
+}
+a:hover{
+	color: #333 !important;
+}
+
+.order-list-page .dui-list-group-title {
+    color: #999;
+    font-size: .6rem;
+    position: relative;
+}
+.order-list-page .lineblock {
+    color: #000;
+    font-size: .7rem;
+}
+.order-list-page .lineblock:before {
+    content: "";
+    position: absolute;
+    left: .5rem;
+    top: 0;
+    right: .5rem;
+    height: 1px;
+    border-top: 1px solid #ebebeb;
+    -webkit-transform-origin: 0 100%;
+    -ms-transform-origin: 0 100%;
+    transform-origin: 0 100%;
+    -webkit-transform: scaleY(0.5);
+    -ms-transform: scaleY(0.5);
+    transform: scaleY(0.5);
+}
+.order-list-page .order-list .status.noremark {
+    height: 2rem;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: end;
+    -ms-flex-pack: end;
+    -webkit-justify-content: flex-end;
+    justify-content: flex-end;
+    height: 100%;
+}
+.order-list-page .order-list .status {
+    font-size: .65rem;
+}
+.order-list-page .order-list .status {
+    float: right;
+}
+.text-danger {
+    color: #ff5555 !important;
+}
+</style>
+<body class="fixed-sidebar full-height-layout gray-bg">
+	<div class="loader" style="display:none">
+		<div class="la-ball-clip-rotate">
+			<div></div>
+		</div>
+	</div>

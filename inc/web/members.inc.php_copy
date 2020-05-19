@@ -1,0 +1,532 @@
+<?php
+defined('IN_IA') or exit('Access Denied');
+global $_W,$_GPC;
+$uniacid = $_W['uniacid'];
+$operation = empty($_GPC['op']) ? 'display' : trim($_GPC['op']);
+$settings = pdo_get("deamx_food_settings",array('uniacid'=>$_W['uniacid']));
+$uniacid = $_W['uniacid'];
+if($operation == 'card' || $operation == 'postcard' || $operation == 'activationset'){
+	if(empty($settings['coupon_uniacid'])){
+		itoast("请先绑定公众号后再来管理卡券！",$this->createWebUrl('coupon',array('op'=>'settings','version_id'=>intval($_GPC['version_id']))),'info');
+	}
+}
+//echo $_W['siteroot']."app/index.php?i={$settings['coupon_uniacid']}&c=entry&do=member_card&m=deam_food&cardid=".$card['card_id']
+if($operation == 'display'){
+	$coupon_uniacid = $settings['coupon_uniacid'];
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	$condition = "";
+	$keywords = trim($_GPC['keyword']);
+	if(!empty($keywords)){
+		$condition .= " AND (wxcard.realname like '%".$keywords."%' OR wxcard.telephone like '%".$keywords."%')";
+	}
+	$list = pdo_fetchall("SELECT fans.uid,fans.openid,fans.nickname,members.credit1,members.credit2,wxcard.id as wxcard_id,wxcard.realname,wxcard.telephone,wxcard.status,wxcard.user_card_status,wxcard.has_active FROM ".tablename("mc_mapping_fans")." fans LEFT JOIN ".tablename('mc_members')." members ON members.uid = fans.uid LEFT JOIN ".tablename("deamx_food_wxcard")." wxcard ON wxcard.wxapp_openid=fans.openid WHERE fans.uniacid=:uniacid ".$condition." ORDER BY fans.fanid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize,array(':uniacid'=>$_W['uniacid']));
+	$card = m('common')->getSysset('membercard');
+	foreach ($list as &$row) {
+		if(!empty($card['card_id'])){
+			$wxcardInfo = pdo_get("deamx_food_wxcard",array('card_id'=>$card['card_id'],'wxapp_openid'=>$row['openid']));
+			if(!empty($row['wxcard_id'])){
+				$row['iswxcard'] = true;
+			}else{
+				$row['iswxcard'] = false;
+			}
+		}
+	}
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename("mc_mapping_fans")." fans LEFT JOIN ".tablename('mc_members')." members ON members.uid = fans.uid LEFT JOIN ".tablename("deamx_food_wxcard")." wxcard ON wxcard.wxapp_openid=fans.openid WHERE fans.uniacid=:uniacid ".$condition." ORDER BY fans.fanid DESC",array(':uniacid'=>$_W['uniacid']));
+
+	$pager = pagination($total, $pindex, $psize);
+}elseif($operation == 'detail'){
+	$method = empty($_GPC['method']) ? 'basic' : trim($_GPC['method']);
+	$uid = intval($_GPC['id']);
+	$userInfo = pdo_fetch("SELECT fans.uid,fans.openid,fans.nickname,members.credit1,members.credit2,wxcard.id as wxcard_id,wxcard.realname,wxcard.telephone,wxcard.status,wxcard.user_card_status,wxcard.has_active,wxcard.field_data FROM ".tablename("mc_mapping_fans")." fans LEFT JOIN ".tablename('mc_members')." members ON members.uid = fans.uid LEFT JOIN ".tablename("deamx_food_wxcard")." wxcard ON wxcard.wxapp_openid=fans.openid WHERE fans.uniacid=:uniacid AND fans.uid=:uid ORDER BY fans.fanid DESC",array(':uniacid'=>$_W['uniacid'],':uid'=>$uid));
+	$userInfo['field_data'] = iunserializer($userInfo['field_data']);
+	if($method == 'order'){
+		$pindex = max(1, intval($_GPC['page']));
+		$psize = 20;
+		$list = pdo_fetchall("SELECT o.id,o.ordersn,o.goods_list,o.count,o.price,o.pay_price,o.status,o.paytime,o.order_type,s.name as store_name,o.pay_type,o.refund_fee FROM ".tablename('deamx_food_order')." o INNER JOIN ".tablename('deamx_food_store')." s ON o.store_id=s.id WHERE o.uniacid=:uniacid and o.status > '0' and o.openid=:openid ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize,array(':uniacid'=>$_W['uniacid'],':openid'=>$userInfo['openid']));
+		foreach ($list as &$row) {
+			$row['paytime'] = date("Y-m-d H:i:s",$row['paytime']);
+			//状态和样式
+			if($row['order_type'] == '1'){
+				if($row['status'] == '0'){
+					$row['status_text'] = "待付款";
+				}elseif($row['status'] == '1'){
+					$row['status_text'] = "等待接单";
+				}elseif($row['status'] == '2'){
+					$row['status_text'] = "制作中";
+				}elseif($row['status'] == '3'){
+					$row['status_text'] = "已完成";
+				}elseif($row['status'] == '5'){
+					$row['status_text'] = "已关闭";
+				}
+			}elseif($row['order_type'] == '2'){
+				if($row['status'] == '0'){
+					$row['status_text'] = "待付款";
+				}elseif($row['status'] == '1'){
+					$row['status_text'] = "等待接单";
+				}elseif($row['status'] == '2'){
+					$row['status_text'] = "等待配送";
+				}elseif($row['status'] == '3'){
+					$row['status_text'] = "已完成";
+				}elseif($row['status'] == '4'){
+					$row['status_text'] = "正在配送";
+				}elseif($row['status'] == '5'){
+					$row['status_text'] = "已关闭";
+				}
+			}
+			if($row['refund_fee'] > 0){
+				$row['status_text'] = $row['status_text']."(已退款)";
+			}
+		}
+		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('deamx_food_order')." o WHERE o.uniacid=:uniacid and o.status > '0' and o.openid=:openid ".$condition." ORDER BY id DESC",array(':uniacid'=>$_W['uniacid'],':openid'=>$userInfo['openid']));
+		$pager = pagination($total, $pindex, $psize);
+
+	}elseif($method == 'credit1' || $method == 'credit2'){
+		$pindex = max(1, intval($_GPC['page']));
+		$psize = 20;
+		$list = pdo_fetchall("SELECT * FROM ".tablename('mc_credits_record')." WHERE uniacid=:uniacid AND uid=:uid AND credittype=:credittype ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize,array(':uniacid'=>$_W['uniacid'],':uid'=>$userInfo['uid'],':credittype'=>$method));
+		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('mc_credits_record')." WHERE uniacid=:uniacid AND uid=:uid AND credittype=:credittype ORDER BY id DESC",array(':uniacid'=>$_W['uniacid'],':uid'=>$userInfo['uid'],':credittype'=>$method));
+		$pager = pagination($total, $pindex, $psize);
+	}
+	
+}elseif($operation == 'credit'){
+	$type = trim($_GPC['type']);
+	$num = floatval($_GPC['num']);
+	$uid = intval($_GPC['uid']);
+	if(empty($uid)){
+		exit("会员不存在！");
+	}
+	$names = array('credit1' => $creditnames['credit1']['title'], 'credit2' => $creditnames['credit2']['title']);
+
+	$credits = mc_credit_fetch($uid);
+
+	if($num < 0 && abs($num) > $credits[$type]) {
+		exit("会员账户{$names[$type]}不够");
+	}
+	if($type == 'credit1'){
+		//积分
+		$num = intval($num);
+	}
+	$remark = trim($_GPC['remark']);
+	if(empty($remark)){
+		$remark = "后台操作";
+	}
+	$status = mc_credit_update($uid, $type, $num, array($_W['user']['uid'], $remark, 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
+	if(is_error($status)) {
+		exit($status['message']);
+	}
+	
+	$openid = pdo_fetchcolumn('SELECT openid FROM ' . tablename('mc_mapping_fans') . ' WHERE acid = :acid AND uid = :uid', array(':acid' => $_W['acid'], ':uid' => $uid));
+	$card = m('common')->getSysset('membercard');
+	if(!empty($card['card_id'])){
+		//查询该会员是否领取会员卡
+		$cardinfo = pdo_get("deamx_food_wxcard",array('card_id'=>$card['card_id'],'wxapp_openid'=>$openid,'status'=>'1'));
+		$newMemberInfo = pdo_get("mc_members",array("uid"=>$uid));
+		if($cardinfo['status'] == '1'){
+			$updateCard = array();
+			$updateCard['code'] = $cardinfo['code'];
+			$updateCard['card_id'] = $cardinfo['card_id'];
+			if($type == 'credit2'){
+				//余额
+				$updateCard['custom_field_value1'] = $newMemberInfo['credit2'];
+			}
+			
+			if($type == 'credit1'){
+				//更新积分
+				$updateCard['add_bonus'] = $num;
+			}
+			//logging_run($updateCard);
+			$tongbu = com('wxcard')->wxMembercardUpdateuser($updateCard,$settings['coupon_uniacid']);
+			//logging_run($tongbu);
+		}
+	}
+	// if(!empty($openid)) {
+	// 	if($type == 'credit1') {
+	// 		mc_notice_credit1($openid, $uid, $num, '管理员后台操作' . $creditnames['credit1']['title']);
+	// 	}
+	// 	if($type == 'credit2') {
+	// 		if($num > 0) {
+	// 			mc_notice_recharge($openid, $uid, $num, '', "管理员后台操作{$creditnames['credit1']['title']},增加{$value}{$creditnames['credit2']['title']}");
+	// 		} else {
+	// 			mc_notice_credit2($openid, $uid, $num, 0, '', '',  "管理员后台操作{$creditnames['credit1']['title']},减少{$value}{$creditnames['credit2']['title']}");
+	// 		}
+	// 	}
+	// }
+	exit('success');
+}elseif($operation == 'card'){
+	$card = m('common')->getSysset('membercard');
+	if (!(empty($card))) 
+	{
+		$result = com('wxcard')->wxCardGetQrcodeUrl($card['card_id'],$settings['coupon_uniacid']);
+		if (!(is_wxerror($result))) 
+		{
+			$codeimg = $result['show_qrcode_url'];
+		}
+		$result2 = com('wxcard')->wxCardGetQuantity($card['card_id'],$settings['coupon_uniacid']);
+		if (!(is_wxerror($result2))) 
+		{
+			$card['card_quantity'] = $result2['quantity'];
+			$card['card_totalquantity'] = $result2['total_quantity'];
+			m('common')->updateSysset(array('membercard' => $card));
+		}
+	}
+	if(checksubmit("stock")){
+		if (!(empty($card))) 
+		{
+			com('wxcard')->wxmemberCardUpdateQuantity();
+		}
+		$card = m('common')->getSysset('membercard');
+		$changetype = intval($_GPC['changetype']);
+		$num = intval($_GPC['num']);
+		if ($num <= 0) 
+		{
+			show_json(0, array('message' => '请填写大于0的数字!'));
+			itoast("请填写大于0的数字!","","error");
+		}
+		$quantity = $card['card_quantity'];
+		$total_quantity = $card['card_totalquantity'];
+		if (empty($changetype)) 
+		{
+			$quantity += $num;
+			$total_quantity += $num;
+		}
+		else 
+		{
+			$quantity -= $num;
+			$total_quantity -= $num;
+			if ($quantity < 0) 
+			{
+				//show_json(0, array('message' => '减少数量不能大于当前库存!'));
+				itoast("减少数量不能大于当前库存!","","error");
+			}
+		}
+		com('wxcard')->wxCardModifyStock($settings['coupon_uniacid'],$card['card_id'], $num, $changetype);
+		$card['card_quantity'] = $quantity;
+		$card['card_totalquantity'] = $total_quantity;
+		m('common')->updateSysset(array('membercard' => $card));
+		//show_json(1, array('url' => referer()));
+		itoast("操作成功!",$this->createWebUrl('members',array('op'=>'card')),"success");
+	}
+	//print_r($card);
+}if($operation == 'postcard'){
+	$card = m('common')->getSysset('membercard');
+	if ($_W['ispost']){
+		if (128 < strlen($_GPC['custom_cell1_url'])) 
+		{
+			show_json(0, '入口跳转链接不能超过128个字符');
+		}
+		$prerogative = htmlspecialchars($_GPC['prerogative'], ENT_QUOTES);
+		$prerogative = istripslashes($prerogative);
+		$card_description = htmlspecialchars($_GPC['card_description'], ENT_QUOTES);
+		$card_description = istripslashes($card_description);
+		if (empty($prerogative)) 
+		{
+			show_json(0, '会员卡特权说明不能为空');
+		}
+		if (300 < mb_strlen($prerogative, 'UTF-8')) 
+		{
+			show_json(0, '会员卡特权不能超过300个字符');
+		}
+		if (empty($card_description)) 
+		{
+			show_json(0, '使用须知说明不能为空');
+		}
+		if (300 < mb_strlen($card_description, 'UTF-8')) 
+		{
+			show_json(0, '使用须知不能超过300个字符');
+		}
+		$carddata = array('card_backgroundtype' => $_GPC['card_backgroundtype'], 'color' => $_GPC['color'], 'color2' => $_GPC['color2'], 'prerogative' => $prerogative, 'card_description' => $card_description, 'custom_cell1' => $_GPC['custom_cell1'], 'custom_cell1_name' => $_GPC['custom_cell1_name'], 'custom_cell1_tips' => $_GPC['custom_cell1_tips'], 'custom_cell1_url' => $_GPC['custom_cell1_url']);
+		if(!empty($_W['account']['original'])){
+			$carddata['wxapp_ghid'] = $_W['account']['original']."@app";
+		}
+		if (empty($card) || ($card['card_logoimg'] != $_GPC['card_logoimg'])) 
+		{
+			if (empty($card)) 
+			{
+				if (empty($_GPC['card_logoimg'])) 
+				{
+					show_json(0, 'logo图片不能为空');
+				}
+			}
+			$imgurl = ATTACHMENT_ROOT . $_GPC['card_logolocalpath'];
+			if (!(is_file($imgurl))) 
+			{
+				$img = tomedia($_GPC['card_logolocalpath']);
+				$img = ihttp_get($img);
+				if (is_error($img)) 
+				{
+					show_json(0, '上传的logo图片限制文件大小限制1MB，像素为300*300，仅支持JPG、PNG格式。');
+				}
+				$img = $img['content'];
+				if (strlen($img) != 0) 
+				{
+					file_put_contents($imgurl, $img);
+				}
+				else 
+				{
+					show_json(0, '上传的logo图片限制文件大小限制1MB，像素为300*300，仅支持JPG、PNG格式。');
+				}
+			}
+			$result = com('wxcard')->wxCardUpdateImg($imgurl,$settings['coupon_uniacid']);
+			if (is_wxerror($result)) 
+			{
+				show_json(0, '上传的logo图片限制文件大小限制1MB，像素为300*300，仅支持JPG、PNG格式。');
+			}
+			$carddata['card_logoimg'] = $_GPC['card_logoimg'];
+			$carddata['card_logowxurl'] = $result['url'];
+		}
+		if (!(empty($_GPC['card_backgroundtype']))) 
+		{
+			if (empty($card) || ($card['card_backgroundimg'] != $_GPC['card_backgroundimg'])) 
+			{
+				if (empty($card)) 
+				{
+					if (empty($_GPC['card_backgroundimg'])) 
+					{
+						show_json(0, '设置使用背景图片时图片不能为空');
+					}
+				}
+				$imgurl = ATTACHMENT_ROOT . $_GPC['card_backgroundimg_localpath'];
+				if (!(is_file($imgurl))) 
+				{
+					$img = tomedia($_GPC['card_backgroundimg_localpath']);
+					$img = ihttp_get($img);
+					if (is_error($img)) 
+					{
+						show_json(0, '上传的背景图片限制文件大小限制1MB，像素为1000*600，仅支持JPG、PNG格式');
+					}
+					$img = $img['content'];
+					if (strlen($img) != 0) 
+					{
+						file_put_contents($imgurl, $img);
+					}
+					else 
+					{
+						show_json(0, '上传的背景图片限制文件大小限制1MB，像素为1000*600，仅支持JPG、PNG格式');
+					}
+				}
+				$result = com('wxcard')->wxCardUpdateImg($imgurl,$settings['coupon_uniacid']);
+				if (is_wxerror($result)) 
+				{
+					show_json(0, '上传的背景图片限制文件大小限制1MB，像素为1000*600，仅支持JPG、PNG格式');
+				}
+				$carddata['card_backgroundimg'] = $_GPC['card_backgroundimg'];
+				$carddata['card_backgroundwxurl'] = $result['url'];
+			}
+			else if (!(empty($card)) && ($card['card_backgroundimg'] == $_GPC['card_backgroundimg'])) 
+			{
+				$carddata['card_backgroundimg'] = $card['card_backgroundimg'];
+				$carddata['card_backgroundwxurl'] = $card['card_backgroundwxurl'];
+			}
+		}
+		if (!(empty($card))) 
+		{
+			$result = com('wxcard')->membercardmanager($carddata,$settings['coupon_uniacid'], $card['card_id']);
+			if ($result['errcode'] == 48001) 
+			{
+				show_json(0, '您尚未开通微信会员卡。');
+			}
+			if ($result['errcode'] == 43010) 
+			{
+				show_json(0, '不能使用余额，需要申请授权。');
+			}
+			if (is_wxerror($result)) 
+			{
+				show_json(0, '卡券信息填写有误');
+			}
+			$this->savecard($carddata);
+		}
+		else 
+		{
+			$card_title = htmlspecialchars($_GPC['card_title'], ENT_QUOTES);
+			$card_title = istripslashes($card_title);
+			$card_brand_name = htmlspecialchars($_GPC['card_brand_name'], ENT_QUOTES);
+			$card_brand_name = istripslashes($card_brand_name);
+			$card_supply_balance = $_GPC['card_supply_balance'];
+			if (empty($card_title)) 
+			{
+				show_json(0, '会员卡标题不能为空');
+			}
+			if (25 < mb_strlen($card_title, 'UTF-8')) 
+			{
+				show_json(0, '会员卡标题不能超过25个字符');
+			}
+			if (empty($card_brand_name)) 
+			{
+				show_json(0, '商户名称不能为空');
+			}
+			if (30 < mb_strlen($card_brand_name, 'UTF-8')) 
+			{
+				show_json(0, '商户名称不能超过30个字符');
+			}
+			if ((9999999 < intval($_GPC['card_totalquantity'])) || (intval($_GPC['card_totalquantity']) < 1)) 
+			{
+				show_json(0, '会员卡库存需设置再1与9999999之间');
+			}
+			$carddata['card_title'] = $card_title;
+			$carddata['card_brand_name'] = $card_brand_name;
+			$carddata['card_supply_balance'] = $card_supply_balance;
+			$carddata['card_totalquantity'] = $_GPC['card_totalquantity'];
+			$carddata['card_quantity'] = $_GPC['card_totalquantity'];
+			$carddata['freewifi'] = (($_GPC['freewifi'] == 'on' ? 1 : 0));
+			$carddata['withpet'] = (($_GPC['withpet'] == 'on' ? 1 : 0));
+			$carddata['freepark'] = (($_GPC['freepark'] == 'on' ? 1 : 0));
+			$carddata['deliver'] = (($_GPC['deliver'] == 'on' ? 1 : 0));
+			if(!empty($_W['account']['original'])){
+				$carddata['wxapp_ghid'] = $_W['account']['original']."@app";
+			}
+			$result = com('wxcard')->membercardmanager($carddata,$settings['coupon_uniacid']);
+			if ($result['errcode'] == 48001) 
+			{
+				show_json(0, '您尚未开通微信会员卡。');
+			}
+			if ($result['errcode'] == 43010) 
+			{
+				show_json(0, '不能使用余额，需要申请授权。');
+			}
+			if (is_wxerror($result)) 
+			{
+				show_json(0, '卡券信息填写有误。');
+			}
+			else 
+			{
+				$carddata['card_id'] = $result['card_id'];
+			}
+			$this->savecard($carddata);
+		}
+		pdo_update("deamx_food_settings", array('wxcardid' => $carddata['card_id']), array('id' => $settings['id']));
+		show_json(1, array('message'=>'操作成功！','url' => $this->createWebUrl('members',array('op'=>'card'))));
+	}
+}elseif($operation == 'activationset'){
+	$item = m('common')->getSysset('memberCardActivation');
+	if(!is_array($item['openField'])){
+		$item['openField'] = array();
+	}
+	if(!is_array($item['requiredField'])){
+		$item['requiredField'] = array();
+	}
+	$card = m('common')->getSysset('membercard');
+
+	if(checksubmit('submit')){
+		$formData = $_GPC['form'];
+		$requiredData = $_GPC['required'];
+		$changedData = $_GPC['changed'];
+		if(!is_array($requiredData)){
+			$requiredData = array();
+		}
+		$openField = array();
+		$requiredField = array();
+		foreach ($formData as $key => $value) {
+			if($value == '1'){
+				if(in_array($key, $requiredData)){
+					$required = 1;
+					$requiredField[] = $key;
+				}
+				$openField[] = $key;
+			}
+		}
+		$bind_old_card = intval($_GPC['bind_old_card']);
+		m('common')->updateSysset(array('memberCardActivation' => array('openField'=>$openField,'requiredField'=>$requiredField,'required_change'=>intval($_GPC['required_change']),'bind_old_card'=>$bind_old_card,'optional_change'=>intval($_GPC['optional_change']))));
+		//提交至微信
+		$postArr = array(
+			'card_id'		=>	$card['card_id']
+		);
+		if(!empty($bind_old_card)){
+			$postArr['bind_old_card'] = array(
+				'name'	=>	"老会员绑定",
+				'url'	=>	"OLDBINDURL"
+			);
+		}
+		if(count($item['requiredField']) > 0){
+			$postArr['required_form']['can_modify'] = $item['required_change'] == '1' ? true : false;
+		}
+		foreach ($item['requiredField'] as $key => $value) {
+			$postArr['required_form']['common_field_id_list'][] = $value;
+		}
+		unset($key,$value);
+
+		$optionalField = array_diff($item['openField'],$item['requiredField']);
+		if(count($optionalField) > 0){
+			$postArr['optional_form']['can_modify'] = $item['optional_change'] == '1' ? true : false;
+		}
+		foreach ($optionalField as $key => $value) {
+			$postArr['optional_form']['common_field_id_list'][] = $value;
+		}
+		unset($key,$value);
+		$postJson = json_encode_ex($postArr);
+		//$postJson = str_replace("OLDBINDURL", $_W['siteroot']."addons/deam_food/wxcard.php?path=".urlencode($_W['siteroot']."app/index.php?i={$settings['coupon_uniacid']}&c=entry&do=member_card&m=deam_food_mcard&cardid=".$card['card_id']), $postJson);
+		$postJson = str_replace("OLDBINDURL", $_W['siteroot']."addons/deam_food/wxcard.php?path=".urlencode($_W['siteroot']."app/index.php?i={$_W['uniacid']}&c=entry&do=member_card&m=deam_food&cardid=".$card['card_id']), $postJson);
+		$result = com('wxcard')->updateActivateuserform($postJson,$settings['coupon_uniacid']);
+		itoast("操作成功!","","success");
+	}
+}elseif($operation == 'card_delete'){
+	$card = m('common')->getSysset('membercard');
+	if (!(empty($card))) 
+	{
+		$res = com('wxcard')->wxCardDelete($card['card_id'],$settings['coupon_uniacid']);
+		m('common')->deleteSysset('membercard');
+		if (is_wxerror($res)) 
+		{
+			itoast('删除失败!错误信息:' . $res['errmsg'],"","error");
+		}else{
+			pdo_update("deamx_food_settings", array('wxcardid' => ""), array('id' => $settings['id']));
+		}
+
+	}
+	itoast("删除成功！","","success");
+}elseif($operation == 'upload_excel'){
+	if($_W['isajax']){
+		load()->func('communication');
+		$tmp_name = $_FILES['file']['tmp_name'];
+		if(empty($tmp_name)){
+			show_json(0,"文件不存在！");
+		}
+		require_once(IA_ROOT.'/framework/library/phpexcel/PHPExcel/IOFactory.php');
+		$reader = PHPExcel_IOFactory::createReader('Excel2007');
+	    $PHPExcel = $reader->load($tmp_name);
+	    $sheet = $PHPExcel->getSheet(0);
+	    $highestRow = $sheet->getHighestRow();
+	    $highestColumm = $sheet->getHighestColumn();
+	    $dataset=array();
+	    for ($row =2; $row <= $highestRow; $row++) {
+	    	$realname = trim($sheet->getCell("A".$row)->getValue());
+	    	$telephone = trim($sheet->getCell("B".$row)->getValue());
+	    	$card_code = trim($sheet->getCell("C".$row)->getValue());
+	    	$credit = intval($sheet->getCell("D".$row)->getValue());
+	    	$balance = floatval($sheet->getCell("E".$row)->getValue());
+	    	$balance = number_format($balance, '2', '.', '');
+	    	if(!empty($telephone) && !empty($card_code) && !empty($realname)){
+
+	    		$postArr = array();
+	    		$postArr = array(
+	    			'uniacid'		=>	$_W['uniacid'],
+	    			'realname'		=>	$realname,
+	    			'telephone'		=>	$telephone,
+	    			'card_code'		=>	$card_code,
+	    			'credit1'		=>	$credit,
+	    			'credit2'		=>	$balance,
+	    		);
+	    		pdo_insert("deamx_food_oldmember_data",$postArr);
+	    	}
+	    	
+	    }
+	    show_json(1);
+	    exit;
+	}
+	exit;
+}elseif($operation == 'export_page'){
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	$list = pdo_fetchall("SELECT * FROM ".tablename('deamx_food_oldmember_data')." WHERE uniacid=:uniacid ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize,array(':uniacid'=>$_W['uniacid']));
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('deamx_food_oldmember_data')." WHERE uniacid=:uniacid ORDER BY id DESC",array(':uniacid'=>$_W['uniacid']));
+	$pager = pagination($total, $pindex, $psize);
+}elseif($operation == 'delete_oldmember'){
+	$id = intval($_GPC['id']);
+	pdo_delete("deamx_food_oldmember_data", array('uniacid' => $_W['uniacid'], 'id' => $id));
+	itoast("删除成功！", "", "success");
+}elseif($operation == 'clear_data'){
+	pdo_delete("deamx_food_oldmember_data", array('uniacid' => $_W['uniacid']));
+	itoast("清空成功！", "", "success");
+}
+include $this->template('system/members/members');
+?>

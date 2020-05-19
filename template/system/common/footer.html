@@ -1,0 +1,39 @@
+
+
+<div class="d-copyright">
+	<div class="friend-link">
+		{if empty($_W['setting']['copyright']['footerright'])}
+			<a href="http://www.vip-zyw.com">微信开发</a>
+			<a href="http://www.vip-zyw.com">微信应用</a>
+			<a href="http://www.vip-zyw.com">小程序开发</a>
+		{else}
+			{$_W['setting']['copyright']['footerright']}
+		{/if}
+	</div>
+	<div class="copyright">{if empty($_W['setting']['copyright']['footerleft'])}Powered by <a href="http://www.vip-zyw.com"><b>VIP资源网</b></a> v{IMS_VERSION} &copy; 2014-2019 <a href="http://www.vip-zyw.com">www.vip-zyw.com</a>{else}{$_W['setting']['copyright']['footerleft']}{/if}</div>
+	{if !empty($_W['setting']['copyright']['icp'])}<div>备案号：<a href="http://www.miitbeian.gov.cn" target="_blank">{$_W['setting']['copyright']['icp']}</a></div>{/if}
+
+</div>
+<style type="text/css">
+.d-copyright{
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: 999;
+	margin-left: 150px;
+	background: #ffffff;
+	padding: 15px 0;
+	text-align: center;
+	color: #333333;
+	border-top: 1px solid #efefef;
+}
+.dm-navbar-header~.dm-subnav~.dm-container~.d-copyright{
+	margin-left: 260px;
+}
+.dm-container{
+	margin-bottom: 70px;
+}
+</style>
+</body>
+</html>

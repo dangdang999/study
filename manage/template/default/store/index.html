@@ -1,0 +1,160 @@
+{mtemplate '_header'}
+<style type="text/css">
+.order-todo{
+    display: block;
+    margin-top: 15px;
+    padding: 0 12px;
+    line-height: 50px;
+    border: 1px solid #eee;
+    border-left: 3px solid #f60;
+}
+.order-todo:hover{
+    color: #000;
+}
+.order-todo .todo-title{
+    font-size: 16px;
+    float: left;
+}
+.order-todo .todo-count{
+    font-style: normal;
+    float: right;
+    cursor: pointer;
+    font-size: 18px;
+    vertical-align: baseline;
+    line-height: 50px
+}
+</style>
+<div class="dm-container">
+	<div class="dm-content dm-stat">
+		<div class="col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">订单概况</div>
+				<div class="panel-body">
+					<div class="col-sm-3 text-center">
+						<div class="title">今日交易额（元）</div>
+						<div><span class="text-danger">￥{$order_stat['todayPrice']}</span></div>
+					</div>
+					<div class="col-sm-3 text-center">
+						<div class="title">制作中订单</div>
+						<div><span class="text-info">{$order_stat['status2']}</span></div>
+					</div>
+					<div class="col-sm-3 text-center">
+						<div class="title">今日付款单数</div>
+						<div><span class="text-success">{$order_stat['todayCount']}</span></div>
+					</div>
+					<div class="col-sm-3 text-center">
+						<div class="title">今日客单均价（元）</div>
+						<div><span class="text-primary">￥{$order_stat['per_price']}</span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">待办事项</div>
+                <div class="panel-body">
+                    <div class="col-sm-6">
+                        <div class="title">外卖</div>
+                        <a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'1','method'=>'takeout'))}" class="order-todo clearfix">
+                            <div class="todo-title">外卖订单-待接单</div>
+                            <i class="todo-count text-danger todo-count0">0</i>
+                        </a>
+                        <a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'2','method'=>'takeout'))}" class="order-todo clearfix">
+                            <div class="todo-title">外卖订单-待配送</div>
+                            <i class="todo-count text-danger todo-count1">0</i>
+                        </a>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="title">店内点餐</div>
+                        <a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'1','method'=>'getself'))}" class="order-todo clearfix">
+                            <div class="todo-title">店内点餐-待接单</div>
+                            <i class="todo-count text-danger todo-count2">0</i>
+                        </a>
+                        <a href="{php echo manage_url(array('r'=>'bell','ac'=>'index'))}" target="_blank" class="order-todo clearfix">
+                            <div class="todo-title text-danger">呼叫服务员</div>
+                            <i class="todo-count text-danger todo-count3">0</i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div class="col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">趋势图</div>
+				<div class="panel-body">
+					<div id="container" style="min-width: 100%; height: 400px; margin: 0 auto"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+function check_order(){
+    $.ajax({
+        "url": "{php echo manage_url(array('r'=>'store','ac'=>'task','op'=>'check_order'))}",
+        dataType: "json",
+        cache: false,
+        success:function(data){
+            if(data.status == '1'){
+                $('.todo-count0').text(data.result.count0);
+                $('.todo-count1').text(data.result.count1);
+                $('.todo-count2').text(data.result.count2);
+                $('.todo-count3').text(data.result.count3);
+            }
+        }
+    });
+}
+$(function(){
+    check_order();
+    setInterval("check_order()",5000);
+})
+</script>
+<script language="javascript" src="{$dmSiteroot}/addons/deam_food/static/js/dist/highcharts/highcharts.js"></script>
+<script type="text/javascript">
+$(function(){
+    $('#container').highcharts({
+    	credits: {
+    		enabled: false
+		},
+        chart: {
+            type: 'line'
+        },
+        title: {
+             text: '最近30天订单趋势图',
+        },
+        subtitle: {
+            text: ''
+        },
+        colors: ['#0061a5','#ff0000'],
+        xAxis: {
+            categories: [{loop $datas $key $row}{if $key>0},{/if}"{$row['date']}"{/loop}]
+        },
+        yAxis: {
+            title: {
+                text: '订单数'
+            },allowDecimals:false
+        },
+        tooltip: {
+            enabled: false,
+            formatter: function() {
+                return '<b>'+ this.series.name +'</b><br>'+this.x +': '+ this.y +'°C';
+            }
+        },
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: true
+                },
+                enableMouseTracking: false
+            }
+        },
+        series: [
+            {
+               name: '订单数',
+               data: [{loop $datas $key $row}{if $key>0},{/if}{$row['order_count']}{/loop}]
+            }
+             ]
+    })
+})
+</script>
+{mtemplate '_footer'}

@@ -1,0 +1,62 @@
+{mtemplate '_mheader'}
+<div class="dm-container dm-stat">
+	<div class="panel panel-default">
+		<div class="panel-heading">订单概况</div>
+		<div class="panel-body">
+			<div class="col-sm-3 col-xs-6 text-center">
+				<div><span class="text-danger">￥{$order_stat['todayPrice']}</span></div>
+				<div class="title">今日交易额（元）</div>
+			</div>
+			<div class="col-sm-3 col-xs-6 text-center">
+				<div><span class="text-info">{$order_stat['status2']}</span></div>
+				<div class="title">制作中订单</div>
+			</div>
+			<div class="col-sm-3 col-xs-6 text-center">
+				<div><span class="text-success">{$order_stat['todayCount']}</span></div>
+				<div class="title">今日付款单数</div>
+			</div>
+			<div class="col-sm-3 col-xs-6 text-center">
+				<div><span class="text-primary">￥{$order_stat['per_price']}</span></div>
+				<div class="title">今日客单均价（元）</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">订单管理<a class="pull-right" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list'))}"">全部</a></div>
+		<div class="panel-body" style="padding-right: 0;padding-left: 0;">
+			<div class="col-sm-3 col-xs-3 text-center">
+				<div><span class="text- todo-count0">0</span></div>
+				<div class="title">外卖-待接单</div>
+			</div>
+			<div class="col-sm-3 col-xs-3 text-center">
+				<div><span class="text- todo-count1">0</span></div>
+				<div class="title">外卖-待配送</div>
+			</div>
+			<div class="col-sm-3 col-xs-3 text-center">
+				<div><span class="text- todo-count2">0</span></div>
+				<div class="title">店内-待接单</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+function check_order(){
+    $.ajax({
+        "url": "{php echo manage_url(array('r'=>'store','ac'=>'task','op'=>'check_order'))}",
+        dataType: "json",
+        cache: false,
+        success:function(data){
+            if(data.status == '1'){
+                $('.todo-count0').text(data.result.count0);
+                $('.todo-count1').text(data.result.count1);
+                $('.todo-count2').text(data.result.count2);
+            }
+        }
+    });
+}
+$(function(){
+    check_order();
+    setInterval("check_order()",5000);
+})
+</script>
+{mtemplate '_mfooter'}

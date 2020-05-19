@@ -1,0 +1,273 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">订单管理</div>
+    <ul>
+        <li class="{if $operation == 'list' && $method == 'getself'}active{/if}"><a href="{php echo $this->createWebUrl('orders', array('op'=>'list','status'=>'0','method'=>'getself'))}">堂食/自取</a></li>
+        <li class="{if $operation == 'list' && $method == 'takeout'}active{/if}"><a href="{php echo $this->createWebUrl('orders', array('op'=>'list','status'=>'0','method'=>'takeout'))}">外卖</a></li>
+    </ul>
+    <!-- <ul>
+        
+    </ul> -->
+</div>
+<div class="dm-container">
+<div class="dm-content">
+<ul class="we7-page-tab">
+{if $method == 'getself'}
+    <li {if $operation == 'list' && $status == '0'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'0','method'=>$method))}">全部订单</a></li>
+    <li {if $operation == 'list' && $status == '1'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'1','method'=>$method))}">等待处理</a></li>
+    <li {if $operation == 'list' && $status == '2'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'2','method'=>$method))}">制作中</a></li>
+    <li {if $operation == 'list' && $status == '3'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'3','method'=>$method))}">已完成</a></li>
+{elseif $method == 'takeout'}
+    <li {if $operation == 'list' && $status == '0'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'0','method'=>$method))}">全部订单</a></li>
+    <li {if $operation == 'list' && $status == '1'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'1','method'=>$method))}">等待接单</a></li>
+    <li {if $operation == 'list' && $status == '2'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'2','method'=>$method))}">待配送</a></li>
+    <li {if $operation == 'list' && $status == '4'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'4','method'=>$method))}">正在配送</a></li>
+    <li {if $operation == 'list' && $status == '3'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders', array('op' => 'list','status'=>'3','method'=>$method))}">已完成</a></li>
+{/if}
+</ul>
+{if $operation == 'list'}
+<style type="text/css">
+.trorder {
+    background: #f8f8f8;
+    border: 1px solid #f2f2f2;
+    text-align: left;
+}
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
+     vertical-align: middle; 
+}
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+    border-top: 1px solid #e7eaec;
+    line-height: 1.42857;
+    padding: 8px;
+    vertical-align: middle;
+}
+.trbody td {
+    text-align: center;
+    vertical-align: top;
+    border-left: 1px solid #f2f2f2;
+    overflow: hidden;
+    font-size: 14px;
+}
+.ops {
+    border-right: 1px solid #f2f2f2;
+    text-align: center;
+}
+.table td a{cursor: pointer;}
+.page-toolbar {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    height: 35px;
+    line-height: 1;
+    vertical-align: middle;
+    margin-bottom: 15px;
+}
+.input-group-select {
+    float: right;
+}
+</style>
+<form action="./index.php" method="get" class="form-horizontal" role="form">
+    <input type="hidden" name="c" value="site">
+    <input type="hidden" name="a" value="entry">
+    <input type="hidden" name="op" value="list">
+    <input type="hidden" name="do" value="orders">
+    <input type="hidden" name="m" value="deam_food">
+    <input type="hidden" name="status" value="{$status}">
+    <input type="hidden" name="method" value="{$method}">
+<div class="page-toolbar">
+    <div class="input-group">
+    <span class="input-group-select">
+        <select name="storeid" class="form-control" style="width:250px;padding:0 5px;">
+            <option value="">全部门店</option>
+            {loop $storeList $storeItem}
+            <option value="{$storeItem['id']}" {if $store_id == $storeItem['id']} selected="" {/if}>{$storeItem['name']}</option>
+            {/loop}
+        </select>
+    </span>
+    <span class="input-group-btn">
+        <button type="submit" class="btn btn-primary">搜索</button>
+    </span>
+    </div>
+</div>        
+</form>
+{if empty($list)}
+<div class="panel we7-panel panel-default">
+    <div class="panel-body" style="text-align: center;padding:30px;">
+        暂时没有符合条件的订单
+    </div>
+</div>
+{else}
+<form action="" method="post">
+	<table class="table table-responsive" style="width: 100%;">
+		 <thead class="navbar-inner">
+            <tr>
+                <th style="width:200px">商品</th>
+                <th class="text-right">单价/数量</th>
+                <th class="text-center">金额</th>
+                <th class="text-center">支付时间</th>
+                <th>状态</th>
+                <th style="width: 250px;" class="text-right">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr><td colspan="6" style="height:20px;padding:0;border-top:none;">&nbsp;</td></tr>
+        {loop $list $orderItem}
+        <tr class="trorder">
+            <td colspan="3">订单编号:  {$orderItem['ordersn']}{if !empty($orderItem['order_number'])}<span style="margin-left: 15px;" class="label label-danger">{$orderItem['order_number']}</span>{/if} {if $orderItem['order_type'] == '2'}{if $orderItem['deliver_type']=='0'}<span style="margin-left: 15px;" class="label label-warning">商家配送</span>{elseif $orderItem['deliver_type']=='1'}<span style="margin-left: 15px;" class="label label-warning showpop" data-toggle="popover" data-trigger="hover" data-placement="top" data-html="true" data-content="<p style=''>{if empty($orderItem['deliverText'])}暂未收到消息{else}{$orderItem['deliverText']}{/if}</p>">达达配送</span>
+            {elseif $orderItem['deliver_type']=='-1'}<span style="margin-left: 15px;" class="label label-danger">达达配送失败，原因：{$orderItem['deliver_dada_failreason']}</span>
+            <a href="{php echo $this->createWebUrl('orders',array('op'=>'to_dada','orderid'=>$orderItem['id']))}" class="text-danger"><i class="fa fa-refresh" data-toggle="tooltip" data-placement="top" data-original-title="重新提交至达达"></i></a>
+            {/if}{/if}</td>
+            <td colspan="3" style="text-align:right;font-size:12px;" class="aops">
+                门店：{$orderItem['storeInfo']['name']}
+            </td>
+        </tr>
+        {php $goods_count = 0}
+        {loop $orderItem['goods_list'] $goods_list}
+        {if empty($goods_list['hasoption']) && $goods_list['count']>0}
+        <tr class="trbody">
+            <td style="text-align: left;overflow:hidden;width:200px">{$goods_list['name']}</td>
+            <td style="text-align:right;border-left:none;">¥ {$goods_list['marketprice']}<br>x{$goods_list['count']}</td>
+            {if $goods_count == 0}
+            <td style="text-align:center" rowspan="{$orderItem['type_count']}">¥ {$orderItem['pay_price']}</td>
+            <td style="text-align:center" rowspan="{$orderItem['type_count']}">{php echo date('Y-m-d',$orderItem['paytime'])}<br>{php echo date('H:i:s',$orderItem['paytime'])}</td>
+            <td rowspan="{$orderItem['type_count']}">
+                {if $orderItem['order_type'] == '1'}
+                    {if $orderItem['status']=='1'}
+                    <span class="label label-danger">等待接单</span>
+                    {elseif $orderItem['status']=='2'}
+                    <span class="label label-warning">制作中</span>
+                    {elseif $orderItem['status']=='3'}
+                    <span class="label label-success">已完成</span>
+                    {/if}
+                {elseif $orderItem['order_type'] == '2'}
+                    {if $orderItem['status']=='0'}
+                    <span class="label label-default">等待付款</span>
+                    {elseif $orderItem['status']=='1'}
+                    <span class="label label-danger">等待接单</span>
+                    {elseif $orderItem['status']=='2'}
+                    <span class="label label-warning">待配送</span>
+                    {elseif $orderItem['status']=='4'}
+                    <span class="label label-warning">正在配送</span>
+                    {elseif $orderItem['status']=='5'}
+                    <span class="label label-info">订单已关闭</span>
+                    {elseif $orderItem['status']=='3'}
+                    <span class="label label-success">已完成</span>
+                    {/if}
+
+                {/if}
+            </td>
+            <td rowspan="{$orderItem['type_count']}" class="ops">
+            {if $orderItem['order_type'] == '1'}
+                {if $orderItem['status']=='1'}
+                <a class="text-success" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'2','orderid'=>$orderItem['id']))}">确定接单</a>
+                {elseif $orderItem['status']=='2'}
+                <a class="text-success" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'3','orderid'=>$orderItem['id']))}">完成订单</a>
+                {elseif $orderItem['status']=='3'}
+                
+                {/if}
+            {elseif $orderItem['order_type'] == '2'}
+                {if $orderItem['status']=='1'}
+                <a class="text-success" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'takeout'))}">确定接单</a>
+                {elseif $orderItem['status']=='2'}
+                <a class="text-success" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'4','orderid'=>$orderItem['id'],'method'=>'takeout'))}">开始配送</a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {elseif $orderItem['status']=='3'}
+
+                {elseif $orderItem['status']=='4'}
+                <a class="text-success" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'takeout'))}">配送成功</a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {/if}
+
+            {/if}
+            </td>
+            {/if}
+        </tr>
+        {php $goods_count++}
+        {else}
+        {loop $goods_list['options'] $options}
+        {if $options['count']>0}
+        <tr class="trbody">
+            <td style="text-align: left;overflow:hidden;width:200px">{$goods_list['name']}<br>{$options['name']}</td>
+            <td style="text-align:right;border-left:none;">¥ {$options['marketprice']}<br>x{$options['count']}</td>
+            {if $goods_count == 0}
+            <td style="text-align:center" rowspan="{$orderItem['type_count']}">¥ {$orderItem['pay_price']}</td>
+            <td style="text-align:center" rowspan="{$orderItem['type_count']}">{php echo date('Y-m-d',$orderItem['paytime'])}<br>{php echo date('H:i:s',$orderItem['paytime'])}</td>
+            <td rowspan="{$orderItem['type_count']}">
+                {if $orderItem['status']=='1'}
+                <span class="label label-danger">等待接单</span>
+                {elseif $orderItem['status']=='2'}
+                <span class="label label-warning">制作中</span>
+                {elseif $orderItem['status']=='3'}
+                <span class="label label-success">已完成</span>
+                {/if}
+            </td>
+            <td rowspan="{$orderItem['type_count']}" class="ops">
+            {if $orderItem['order_type'] == '1'}
+                {if $orderItem['status']=='1'}
+                <a class="text-success" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'2','orderid'=>$orderItem['id']))}">确定接单</a>
+                {elseif $orderItem['status']=='2'}
+                <a class="text-success" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'3','orderid'=>$orderItem['id']))}">完成订单</a>
+                {elseif $orderItem['status']=='3'}
+                
+                {/if}
+            {elseif $orderItem['order_type'] == '2'}
+                {if $orderItem['status']=='1'}
+                <a class="text-success" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'takeout'))}">确定接单</a>
+                {elseif $orderItem['status']=='2'}
+                <a class="text-success" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'4','orderid'=>$orderItem['id'],'method'=>'takeout'))}">开始配送</a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {elseif $orderItem['status']=='3'}
+
+                {elseif $orderItem['status']=='4'}
+                <a class="text-success" href="{php echo $this->createWebUrl('orders',array('op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'takeout'))}">配送成功</a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {/if}
+            {/if}
+            </td>
+            {/if}
+        </tr>
+        {php $goods_count++}
+        {/if}
+        {/loop}
+        {/if}
+        
+        {/loop}
+        {if $orderItem['order_type'] == '2'}
+        <tr class="trorder" style="background: #fff;border-bottom: 1px solid #e7eaec">
+            <td colspan="5" style="padding-left: 10px !important;">配送信息:  <span class="text-warning">{$orderItem['address_info']['realname']} {$orderItem['address_info']['telphone']} {$orderItem['address_info']['address']} {$orderItem['address_info']['address_road']} {$orderItem['address_info']['number']}</span></td>
+            <td colspan="1" style="text-align:right;font-size:14px;color: red;padding-right: 10px !important;" class="aops"></td>
+        </tr>
+        {/if}
+        <tr class="trorder" style="background: #fff;border-bottom: 1px solid #e7eaec">
+            <td colspan="5" style="padding-left: 10px !important;">备注:  <span class="text-danger">{$orderItem['remark']}</span></td>
+            <td colspan="1" style="text-align:right;font-size:14px;color: red;padding-right: 10px !important;" class="aops">{if !empty($orderItem['deskInfo']['name'])}桌号：{$orderItem['deskInfo']['name']}{/if}</td>
+        </tr>
+        <tr style="border-bottom:none;background:#f9f9f9;">
+            <td colspan="6" style="text-align:left;height:0;padding:0"></td>
+        </tr>
+        <tr><td colspan="6" style="height:20px;padding:0;border-top:none;">&nbsp;</td></tr>
+        {/loop}
+        </tbody>
+	</table>
+	{$pager}
+</form>
+{/if}
+{/if}
+</div>
+</div>
+<script type="text/javascript">
+    require(['bootstrap'], function ($) {
+        $('.showtitle').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+        $('.showpop').on('shown.bs.popover', function () {
+            $('.showpop').not(this).popover('hide');
+        });
+        $('[data-toggle="popover"]').popover("destroy").popover({
+            container: $(document.body)
+        });
+    });
+</script>
+{template 'system/common/footer'}

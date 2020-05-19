@@ -1,0 +1,37 @@
+<div class='' id='attr_{$goods_attr['id']}' >
+<div style='border:1px solid #e7eaec;padding:10px;margin-bottom: 10px;' >
+    <input name="attr_id[]" type="hidden" class="form-control spec_id" value="{$goods_attr['id']}"/>
+    <div class="form-group">
+        <div class="col-sm-12">
+            <div class='input-group'>
+                <input name="attr_title[{$spec['id']}]" type="text" class="form-control spec_title" value="{$goods_attr['title']}" placeholder="属性名称 (比如: 口味)"/>
+                <div class='input-group-btn'>
+                    <a href="javascript:;" id="add-attritem-{$goods_attr['id']}" specid='{$goods_attr['id']}' class='btn btn-info add-attritem' onclick="addAttrItem('{$goods_attr['id']}')"><i class="fa fa-plus"></i> 添加属性项</a>
+                    <a href="javascript:void(0);" class='btn btn-danger' onclick="removeAttr('{$goods_attr['id']}')"><i class="fa fa-remove"></i></a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <div id='attr_item_{$goods_attr['id']}' class='attr_item_items' style="overflow: hidden;">
+            {loop $goods_attr['options'] $options}
+            {mtemplate 'store/tpl/attr_item'}
+            {/loop}
+        </div>
+    </div>
+</div>
+</div>
+</div>
+<script type="text/javascript">
+    require(['jquery.ui'],function(){
+        $('.attr_item_items').sortable({
+            handle:'.deam-item',
+            stop: function(){
+                //refreshOptions();
+            }
+        });
+    });
+</script>
+</script>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="3684814c-3764-40f2-960d-76a87fc0e52b" name="deam_food" url="http://101.132.183.62">
+        <fileTransfer host="101.132.183.62" port="22" rootFolder="/www/wwwroot/wx.dzapi.com/addons/deam_food" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

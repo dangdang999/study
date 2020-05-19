@@ -1,0 +1,365 @@
+{mtemplate '_mheader'}
+{if $operation == 'list'}
+<div class="dui-page order-list-page">
+<div class="dui-header dui-header-primary">
+    <div class="dui-header-left">
+        <a class="back" href="{php echo manage_url(array('r'=>'store','ac'=>'index'))}" style="color: #fff"></a>
+    </div>
+    <div class="title">{if $method == 'getself'}堂食/自取{elseif $method == 'takeout'}外送{/if}</div>
+    <div class="dui-header-right">
+        <a style="color: #fff" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','method'=>($method=='getself'?'takeout':'getself') ))}" class="icon icon-delete external">{if $method == 'takeout'}堂食/自取{elseif $method == 'getself'}外送{/if}</a>
+    </div>
+</div>
+<div class="dui-content order-list">
+	{loop $list $orderItem}
+	<div class="dui-list-group order-item" data-orderid="{$orderItem['id']}" data-verifycode="">
+        <a class="dui-list external" style="padding: 0.42rem 0.5rem" ; href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'detail','id'=>$orderItem['id']))}" data-nocache="true">
+            <div class="dui-list-inner">
+                <div class="subtitle">{$orderItem['ordersn']}{if !empty($orderItem['order_number'])}<span style="margin-left: 15px;" class="label label-danger">{$orderItem['order_number']}</span>{/if}</div>
+            </div>
+
+            <div class="row-remark text-cancel" style="width: 4rem; font-size: 0.65rem;text-align: right;">
+            	{if $orderItem['order_type'] == '1'}
+	                {if $orderItem['status']=='1'}
+	                等待接单
+	                {elseif $orderItem['status']=='2'}
+	                制作中
+	                {elseif $orderItem['status']=='3'}
+	                已完成
+	                {/if}
+	            {elseif $orderItem['order_type'] == '2'}
+	                {if $orderItem['status']=='0'}
+	                等待付款
+	                {elseif $orderItem['status']=='1'}
+	                等待接单
+	                {elseif $orderItem['status']=='2'}
+	                待配送
+	                {elseif $orderItem['status']=='4'}
+	                正在配送
+	                {elseif $orderItem['status']=='5'}
+	                订单已关闭
+	                {elseif $orderItem['status']=='3'}
+	                已完成
+	                {/if}
+	            {/if}
+            </div>
+            <div class="angle"></div>
+        </a>
+            
+        <a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'detail','id'=>$orderItem['id']))}" class="external" data-nocache="true">
+        	{loop $orderItem['goods_list'] $goods_list}
+        	{if empty($goods_list['hasoption']) && $goods_list['count']>0}
+            <div class="dui-list goods-list">
+                <div class="dui-list-media" style="">
+                    <img class="" src="{media $goods_list['img']}" data-lazyloaded="true">
+                </div>
+                <div class="dui-list-inner">
+                    <div class="text goodstitle towline">{$goods_list['name']}</div>
+                    
+                    
+
+                </div>
+                <div class="dui-list-angle">
+                    ￥<span class="marketprice">{$goods_list['marketprice']}<br>   <span style="color: #999">x{$goods_list['count']}</span>
+                </span></div>
+
+            </div>
+            {else}
+            {loop $goods_list['options'] $options}
+            {if $options['count']>0}
+            <div class="dui-list goods-list">
+                <div class="dui-list-media" style="">
+                    <img class="" src="{media $goods_list['img']}" data-lazyloaded="true">
+                </div>
+                <div class="dui-list-inner">
+                    <div class="text goodstitle towline">{$goods_list['name']}</div>
+                    <div class="subtitle">
+                        <div class="total">{$options['name']}</div>
+                    </div>
+                    
+
+                </div>
+                <div class="dui-list-angle">
+                    ￥<span class="marketprice">{$options['marketprice']}<br>   <span style="color: #999">x{$options['count']}</span>
+                </span></div>
+
+            </div>
+            {/if}
+            {/loop}
+            {/if}
+            {/loop}
+        </a>
+        <div class="dui-list-group-title lineblock">
+            <span class="status noremark">共 <span>{$orderItem['count']}</span> 个商品 实付: <span class="text-danger">￥{$orderItem['pay_price']}</span></span>
+        </div>
+        <div class="dui-list-group-title lineblock opblock">
+        	<span class="status noremark">
+        	{if in_array('store_class_deal',$user_permissionArr)}
+    		{if $orderItem['order_type'] == '1'}
+                {if $orderItem['status']=='1'}
+                <a class="text-success external" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'getself'))}">确定接单</a>
+                {elseif $orderItem['status']=='2'}
+                <a class="text-success external" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'getself'))}">完成订单</a>
+                {elseif $orderItem['status']=='3'}
+                
+                {/if}
+            {elseif $orderItem['order_type'] == '2'}
+                {if $orderItem['status']=='1'}
+                <a class="text-success external" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'takeout'))}">确定接单</a>
+                {elseif $orderItem['status']=='2'}
+                <a class="text-success external" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'4','orderid'=>$orderItem['id'],'method'=>'takeout'))}">开始配送</a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {elseif $orderItem['status']=='3'}
+
+                {elseif $orderItem['status']=='4'}
+                <a class="text-success external" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'takeout'))}">配送成功</a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {/if}
+            {/if}
+        	{/if}
+        	</span>
+        	
+        </div>
+    </div>
+    {/loop}
+    {$pager}
+</div>
+</div>
+{elseif $operation == 'detail'}
+<style type="text/css">
+.dui-cell-group.noborder {
+    padding: 0.35rem 0;
+}
+.dui-cell-group.noborder .dui-cell {
+    padding: 0.2rem 0.5rem;
+}
+.dui-cell-group.noborder .dui-cell:before {
+    border-top: none;
+}
+.order-info.dui-cell-group.noborder .dui-cell .dui-cell-info {
+    color: #999;
+    font-size: 0.6rem;
+}
+.dui-list-angle {
+    font-size: 0.65rem;
+    text-align: right;
+}
+.dui-footer {
+    padding-right: 0.6rem;
+}
+.dui-footer .btn {
+    margin-top: 0.6rem;
+}
+</style>
+<div class="dui-page order-list-page">
+	<div class="dui-header dui-header-primary">
+	    <div class="dui-header-left">
+	        <a class="back" style="color: #fff"></a>
+	    </div>
+	    <div class="title">订单详情</div>
+	    <div class="dui-header-right">
+	       
+	    </div>
+	</div>
+	<div class="dui-content order-list navbar">
+    {if $orderItem['order_type'] == '2'}
+        <div class="fui-list-group noborder" style="display: block;">
+            <div class="fui-list" style="background: #fff;padding-top: .8rem;padding-bottom: .83rem;padding-left: 0.6rem;">
+                
+                <div class="fui-list-inner" style="font-size: 0.7rem;height: auto;">
+                    <div class="title has-address">{$orderItem['address_info']['realname']}  {$orderItem['address_info']['telphone']}</div>
+                    <div class="text"><span class="address">{$orderItem['address_info']['address']} {$orderItem['address_info']['address_road']} {$orderItem['address_info']['number']}</span></div>
+                </div>
+            </div>
+        </div>
+    {/if} 
+		<div class="dui-list-group order-item" data-orderid="{$orderItem['id']}" data-verifycode="">
+      
+            
+        <a href="javascript:;" class="external" data-nocache="true">
+        	{loop $orderItem['goods_list'] $goods_list}
+        	{if empty($goods_list['hasoption']) && $goods_list['count']>0}
+            <div class="dui-list goods-list">
+                <div class="dui-list-media" style="">
+                    <img class="" src="{media $goods_list['img']}" data-lazyloaded="true">
+                </div>
+                <div class="dui-list-inner">
+                    <div class="text goodstitle towline">{$goods_list['name']}</div>
+                    
+                    
+
+                </div>
+                <div class="dui-list-angle">
+                    ￥<span class="marketprice">{$goods_list['marketprice']}<br>   <span style="color: #999">x{$goods_list['count']}</span>
+                </span></div>
+
+            </div>
+            {else}
+            {loop $goods_list['options'] $options}
+            {if $options['count']>0}
+            <div class="dui-list goods-list">
+                <div class="dui-list-media" style="">
+                    <img class="" src="{media $goods_list['img']}" data-lazyloaded="true">
+                </div>
+                <div class="dui-list-inner">
+                    <div class="text goodstitle towline">{$goods_list['name']}</div>
+                    <div class="subtitle">
+                        <div class="total">{$options['name']}</div>
+                    </div>
+                    
+
+                </div>
+                <div class="dui-list-angle">
+                    ￥<span class="marketprice">{$options['marketprice']}<br>   <span style="color: #999">x{$options['count']}</span>
+                </span></div>
+
+            </div>
+            {/if}
+            {/loop}
+            {/if}
+            {/loop}
+        </a>
+        </div>
+        <!-- <div class="dui-list-group-title lineblock">
+            <span class="status noremark">共 <span>{$orderItem['count']}</span> 个商品 实付: <span class="text-danger">￥{$orderItem['pay_price']}</span></span>
+        </div> -->
+        <div class="dui-cell-group noborder">
+		{if $orderItem['order_type'] == '2' && $orderItem['pbox_fee']>0}
+			<div class="dui-cell">
+				<div class="dui-cell-label">餐盒费</div>
+				<div class="dui-cell-info"></div>
+				<div class="dui-cell-remark noremark">¥ {$orderItem['pbox_fee']}</div>
+			</div>
+		{/if}
+		{if $orderItem['order_type'] == '2'}
+			<div class="dui-cell">
+				<div class="dui-cell-label">配送费</div>
+				<div class="dui-cell-info"></div>
+				<div class="dui-cell-remark noremark">¥ {$orderItem['send_fee']}</div>
+			</div>
+		{/if}
+		{if $orderItem['enoughdeduct'] >0}
+			<div class="dui-cell">
+				<div class="dui-cell-label">满减活动</div>
+				<div class="dui-cell-info"></div>
+				<div class="dui-cell-remark noremark">-¥ {$orderItem['enoughdeduct']}</div>
+			</div>
+		{/if}
+		{if $orderItem['coupon_price'] >0}
+			<div class="dui-cell">
+				<div class="dui-cell-label">优惠券抵扣</div>
+				<div class="dui-cell-info"></div>
+				<div class="dui-cell-remark noremark">-¥ {$orderItem['coupon_price']}</div>
+			</div>
+		{/if}
+			<div class="dui-cell">
+				<div class="dui-cell-label" style="width: 6rem;">实付费(含运费)</div>
+				<div class="dui-cell-info"></div>
+				<div class="dui-cell-remark noremark text-danger"><span style="font-size:.75rem">¥{$orderItem['pay_price']}</span></div>
+			</div>
+		</div>
+		<div class="dui-cell-group noborder order-info">
+			<div class="dui-cell">
+				<div class="dui-cell-info">
+					<span style="margin-right: 0.7rem;">订单编号</span>{$orderItem['ordersn']}</div>
+				<div class="dui-cell-remark noremark">
+
+				</div>
+			</div>
+			<div class="dui-cell">
+				<div class="dui-cell-info">
+					<span style="margin-right:0.7rem;">创建时间</span>{php echo date("Y-m-d H:i:s",$orderItem['createtime'])}</div>
+				<div class="dui-cell-remark noremark">
+
+				</div>
+			</div>
+			<div class="dui-cell">
+				<div class="dui-cell-info">
+					<span style="margin-right:0.7rem;">订单状态</span>
+					{if $orderItem['order_type'] == '1'}
+		                {if $orderItem['status']=='1'}
+		                等待接单
+		                {elseif $orderItem['status']=='2'}
+		                制作中
+		                {elseif $orderItem['status']=='3'}
+		                已完成
+		                {/if}
+		            {elseif $orderItem['order_type'] == '2'}
+		                {if $orderItem['status']=='0'}
+		                等待付款
+		                {elseif $orderItem['status']=='1'}
+		                等待接单
+		                {elseif $orderItem['status']=='2'}
+		                待配送
+		                {elseif $orderItem['status']=='4'}
+		                正在配送
+		                {elseif $orderItem['status']=='5'}
+		                订单已关闭
+		                {elseif $orderItem['status']=='3'}
+		                已完成
+		                {/if}
+		            {/if}
+				</div>
+				<div class="dui-cell-remark noremark">
+
+				</div>
+			</div>
+            {if $orderItem['order_type'] == '2'}
+            <div class="dui-cell">
+                <div class="dui-cell-info">
+                    <span style="margin-right:0.7rem;">配送方式</span>
+                        {if $orderItem['deliver_type']=='0'}商家配送{elseif $orderItem['deliver_type']=='1'}达达配送{elseif $orderItem['deliver_type']=='-1'}达达配送失败，原因：{$orderItem['deliver_dada_failreason']}{/if}
+                    </div>
+                <div class="dui-cell-remark noremark">
+
+                </div>
+            </div>
+            {if in_array('store_class_deal',$user_permissionArr)}
+            <div class="dui-cell">
+                <div class="dui-cell-info">
+                     <a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'to_dada','orderid'=>$orderItem['id'],'method'=>'takeout'))}" class="text-danger"><i class="fa fa-refresh"></i>重新提交至达达</a>
+                </div>
+                <div class="dui-cell-remark noremark">
+
+                </div>
+            </div>
+            {/if}
+            {/if}		
+		</div>
+        {if $orderItem['deliver_type']=='1'}
+        <div class="dui-cell-group noborder order-info" style="padding: 0.2rem 0.5rem;color: #999;font-size: 0.6rem;">
+            {if empty($orderItem['deliverText'])}暂未收到消息{else}{$orderItem['deliverText']}{/if}
+        </div>
+        {/if}
+		{if $orderItem['deliver_type']!='0'}
+		<p class="text-center" style="padding: 0.4rem;font-size: 0.6rem;color: #757575">第三方配送订单，请勿随意更改订单状态</p>
+		{/if}
+
+	</div>
+	<div class="dui-footer" style="text-align: right;">
+        {if in_array('store_class_deal',$user_permissionArr)}
+		{if $orderItem['order_type'] == '1'}
+            {if $orderItem['status']=='1'}
+            <a class="btn btn-sm btn-default-o external" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'getself'))}">确定接单</a>
+            {elseif $orderItem['status']=='2'}
+            <a class="btn btn-sm btn-default-o external" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'getself'))}">完成订单</a>
+            {elseif $orderItem['status']=='3'}
+            
+            {/if}
+        {elseif $orderItem['order_type'] == '2'}
+            {if $orderItem['status']=='1'}
+            <a class="btn btn-sm btn-default-o external" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'takeout'))}">确定接单</a>
+            {elseif $orderItem['status']=='2'}
+            <a class="btn btn-sm btn-success-o external" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'4','orderid'=>$orderItem['id'],'method'=>'takeout'))}">开始配送</a>
+            
+            {elseif $orderItem['status']=='3'}
+
+            {elseif $orderItem['status']=='4'}
+            <a class="btn btn-sm btn-default-o external" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'takeout'))}">配送成功</a>
+            {/if}
+        {/if}
+    	{/if}
+	</div>
+</div>
+{/if}
+{mtemplate '_mfooter'}

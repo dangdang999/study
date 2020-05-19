@@ -1,0 +1,23 @@
+{if !empty($store_id)}	
+<script type="text/javascript">
+function order_prompt(){
+	$.ajax({
+		"url": "{php echo manage_url(array('r'=>'store','ac'=>'task','op'=>'order_prompt'))}",
+		dataType: "json",
+		cache: false,
+		success:function(data){
+			if(data.status == '1'){
+				var promptSound = new Audio("../static/audios/prompt-sound.mp3");
+				promptSound.play();
+			}
+		}
+	});
+	setTimeout("order_prompt()",5000);
+}
+$(function(){
+	order_prompt();
+})
+</script>
+{/if}
+</body>
+</html>

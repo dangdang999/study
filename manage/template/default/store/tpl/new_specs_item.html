@@ -1,0 +1,18 @@
+<div class="new_spec_item" style="float:left;margin:5px;width:500px; position: relative;">
+    <input type="hidden" class="form-control attr_item_id" name="new_spec_item[id][]" value="{$newSpecs['id']}" />
+
+    <div class="input-group">
+		<span class="input-group-addon">
+			选项名称
+		</span>
+        <input type="text" class="form-control attr_item_title" name="new_spec_item[title][]" VALUE="{$newSpecs['title']}" placeholder="输入描述内容"/>
+        <span class="input-group-addon">
+			价格(元)
+		</span>
+        <input type="text" class="form-control attr_item_title" name="new_spec_item[marketprice][]" VALUE="{$newSpecs['marketprice']}" placeholder="输入价格"/>
+        <span class="input-group-addon">
+			<a href="javascript:;" class="remove-item" title='删除'><i class="fa fa-times"></i></a>
+	  		<a href="javascript:;" class="fa fa-arrows deam-item" title="拖动调整显示顺序" ></a>
+		</span>
+    </div>
+</div>

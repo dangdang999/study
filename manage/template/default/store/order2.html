@@ -1,0 +1,507 @@
+{mtemplate '_header'}
+<!-- <script src="../addons/deam_food/static/js/dist/jquery/masonry-docs.min.js"></script> -->
+<div class="dm-subnav">
+	<div class="subnav-title">订单管理</div>
+    <ul>
+        <li class="{if $operation == 'list' && $method == 'getself'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'0','method'=>'getself'))}">堂食/自取</a></li>
+        <li class="{if $operation == 'list' && $method == 'takeout'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'0','method'=>'takeout'))}">外卖</a></li>
+    </ul>
+	<!-- <ul>
+		
+	</ul> -->
+</div>
+<div class="dm-container">
+<div class="dm-content">
+{if $operation == 'list'}
+<style type="text/css">
+.page-toolbar {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    height: 35px;
+    line-height: 1;
+    vertical-align: middle;
+    margin-bottom: 15px;
+}
+.input-group-select {
+    float: right;
+}
+</style>
+<form action="./index.php" method="get" class="form-horizontal" role="form">
+    <input type="hidden" name="c" value="site">
+    <input type="hidden" name="i" value="{$_W['uniacid']}">
+    <input type="hidden" name="a" value="entry">
+    <input type="hidden" name="op" value="list">
+    <input type="hidden" name="r" value="order">
+    <input type="hidden" name="ac" value="index">
+    <input type="hidden" name="do" value="manage">
+    <input type="hidden" name="m" value="deam_food">
+    <input type="hidden" name="status" value="{$status}">
+<div class="page-toolbar">
+    <div class="input-group">
+    <input type="text" style="width: 200px;float: right;" class="form-control" name="keyword" value="{$keyword}" placeholder="请输入关键词">
+    <span class="input-group-select">
+        <select name="searchfield" class="form-control" style="width:110px;padding:0 5px;">
+            <option value="ordernumber" {if $searchfield == 'ordernumber'} selected="" {/if}>取餐号</option>
+            <option value="ordersn" {if $searchfield == 'ordersn'} selected="" {/if}>订单号</option>
+        </select>
+    </span>
+    <span class="input-group-btn">
+        <button type="submit" class="btn btn-primary">搜索</button>
+    </span>
+    </div>
+</div>        
+</form>
+<ul class="we7-page-tab" style="margin-left: 0;margin-right: 0;margin-top: -10px;margin-bottom: 20px;">
+{if $method == 'getself'}
+    <li class="{if $operation == 'list' && $status == '0'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'0','method'=>'getself'))}">全部有效订单</a></li>
+    <li class="{if $operation == 'list' && $status == '1'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'1','method'=>'getself'))}">等待接单</a></li>
+    <li class="{if $operation == 'list' && $status == '2'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'2','method'=>'getself'))}">制作中</a></li>
+    <li class="{if $operation == 'list' && $status == '3'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'3','method'=>'getself'))}">已完成</a></li>
+    <li class="{if $operation == 'list' && $status == '-1'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'-1','method'=>'getself'))}">已取消</a></li>
+{elseif $method == 'takeout'}
+    <li class="{if $operation == 'list' && $status == '0'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'0','method'=>'takeout'))}">全部有效订单</a></li>
+    <li class="{if $operation == 'list' && $status == '1'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'1','method'=>'takeout'))}">等待接单</a></li>
+    <li class="{if $operation == 'list' && $status == '2'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'2','method'=>'takeout'))}">待配送</a></li>
+    <li class="{if $operation == 'list' && $status == '4'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'4','method'=>'takeout'))}">正在配送</a></li>
+    <li class="{if $operation == 'list' && $status == '3'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'3','method'=>'takeout'))}">已完成</a></li>
+    <li class="{if $operation == 'list' && $status == '-1'}active{/if}"><a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>'-1','method'=>'takeout'))}">已取消</a></li>
+{/if}
+</ul>
+{if empty($list)}
+<div class="panel we7-panel panel-default">
+    <div class="panel-body" style="text-align: center;padding:30px;">
+        暂时没有符合条件的订单
+    </div>
+</div>
+{else}
+{if $method == 'getself'}
+<style type="text/css">
+.layui-form-checkbox[lay-skin=primary]{
+    padding-left: 20px;
+}
+.layui-form-checked[lay-skin=primary] i {
+    border-color: #FF5722;
+    background-color: #FF5722;
+    color: #fff;
+}
+.layui-form-checkbox[lay-skin=primary]:hover i{border-color:#FF5722;color:#fff}
+</style>
+<!-- <form class="layui-form" lay-filter="chooseAllForm">
+<div class="orderDealBtn">
+    {if $status == '1'}
+    {elseif $status == '2'}
+    <input type="checkbox" lay-filter="checkAll" name="" title="全选" lay-skin="primary"> <button class="layui-btn layui-btn-danger layui-btn-sm">一键完成</button>
+    {elseif $status == '-1'}
+
+    {/if}
+</div>
+</form> -->
+{/if}
+<div id="masonry">
+<form action="" method="post">
+	{loop $list $orderItem}
+	<div class="order-box box" data-orderid="{$orderItem['id']}">
+		<p>订单编号:  {$orderItem['ordersn']}</p>
+		<p>下单时间：{php echo date('Y-m-d H:i:s',$orderItem['paytime'])}{if $orderItem['pay_type'] == '1'}<i style="font-size: 20px;margin-left: 10px;color: #009800" class="icon icon-wechat"></i>{elseif $orderItem['pay_type'] == '2'}<i style="font-size: 20px;margin-left: 10px;color: #f95c11" class="icon icon-yue"></i>{/if}</p>
+		<!-- {if !empty($orderItem['order_number'])}<p>取餐号：<span class="label label-danger">{$orderItem['order_number']}</span></p>{/if} -->
+		<table class="table" style="margin-bottom: 0;">
+	      <thead>
+	        <tr>
+	          <th style="width: 60%">商品</th>
+	          <th style="width: 20%" class="text-center">数量</th>
+	          <th style="width: 20%;" class="text-right">金额</th>
+	        </tr>
+	      </thead>
+	      <tbody>
+	        
+	        {loop $orderItem['goods_list'] $goods_list}
+            <tr>
+                <td>{$goods_list['name']} {if !empty($goods_list['optionName'])}-{$goods_list['optionName']}{/if}</td>
+                <td class="text-center">x{$goods_list['count']}</td>
+                <td class="text-right">￥{$goods_list['price']}</td>
+            </tr>
+			{/loop}
+			{if $orderItem['enoughdeduct']>0}
+			<tr>
+	          <td colspan="2">满减优惠</td>
+	          <td class="text-right">-￥{$orderItem['enoughdeduct']}</td>
+	        </tr>
+	        {/if}
+	        {if $orderItem['coupon_price']>0}
+			<tr>
+	          <td colspan="2">优惠券优惠</td>
+	          <td class="text-right">-￥{$orderItem['coupon_price']}</td>
+	        </tr>
+	        {/if}
+			<tr>
+				<th colspan="2">实际收款</th>
+				<th class="text-right">￥{$orderItem['pay_price']}</th>
+			</tr>
+			{if $orderItem['refund_fee']>0}
+			<tr style="color: #00a290">
+				<th>退款</th>
+				<th></th>
+				<th class="text-right">-￥{$orderItem['refund_fee']}</th>
+			</tr>
+			{/if}
+	      </tbody>
+	    </table>
+	    <!--配送地址-->
+	    {if $orderItem['order_type'] == '2'}
+        <p>配送信息:  <span class="text-warning">{$orderItem['address_info']['realname']} {$orderItem['address_info']['telphone']} {$orderItem['address_info']['address']} {$orderItem['address_info']['address_road']} {$orderItem['address_info']['number']}</span></p>
+        {/if}
+	    <!--订单备注-->
+	    {if !empty($orderItem['remark'])}<p class="text-danger order-remark">{$orderItem['remark']}</p>{/if}
+	    <!--按钮组-->
+	    <div class="order-bottom">
+	    	<a class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" data-original-title="打印订单" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'print_order','orderid'=>$orderItem['id'],'method'=>trim($_GPC['method'])))}"><i class="icon icon-print"></i></a>
+	    	{if $orderItem['order_type'] == '1'}
+            <a class="call-bell btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" data-original-title="叫号取餐" data-orderid="{$orderItem['id']}"><i class="icon icon-lingsheng"></i></a>
+            {/if}
+	    	{if in_array('store_class_deal',$user_permissionArr) || in_array('store_order_deal',$user_permissionArr)}
+	    	{if $orderItem['order_type'] == '1'}
+		    	{if $orderItem['status']=='1'}
+		    	<a class="btn btn-default btn-sm" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'getself'))}"><i class="icon icon-order-recive"></i></a>
+		    	{elseif $orderItem['status']=='2'}
+	            <a class="btn btn-default btn-sm jumpUrl" data-toggle="tooltip" data-placement="top" data-original-title="完成订单" href="javascript:;" data-href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'getself'))}"><i class="icon icon-order-success"></i></a>
+		    	{/if}
+                
+		    {elseif $orderItem['order_type'] == '2'}
+		    	{if $orderItem['status']=='1'}
+                <a class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" data-original-title="确认接单" onclick="return confirm('确认接单？\r\n接单后无法取消');return false;" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'2','orderid'=>$orderItem['id'],'method'=>'takeout'))}"><i class="icon icon-order-recive"></i></a>
+                {elseif $orderItem['status']=='2'}
+                <a class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" data-original-title="开始配送" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'4','orderid'=>$orderItem['id'],'method'=>'takeout'))}"><i class="icon icon-peisong"></i></a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {elseif $orderItem['status']=='3'}
+
+                {elseif $orderItem['status']=='4'}
+                <a class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" data-original-title="配送成功" href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'deal','status'=>'3','orderid'=>$orderItem['id'],'method'=>'takeout'))}"><i class="icon icon-order-success"></i></a>
+                {if $orderItem['deliver_type']!='0'}<i class="fa fa-question-circle text-danger" data-toggle="tooltip" data-placement="top" data-original-title="第三方配送订单，请勿随意更改订单状态"></i>{/if}
+                {/if}
+                {if ($orderItem['status']=='2' || $orderItem['status']=='3' || $orderItem['status']=='4') && $orderItem['deliver_type']!='0'}
+                <!--取消达达订单-->
+                <a href="javascript:;" class="cancelDeliver" data-orderid="{$orderItem['id']}" style="font-size: 12px;margin-right: 5px;color: #fb6638">取消达达配送</a>
+                {/if}
+	    	{/if}
+	    	{/if}
+            {if in_array('store_order_cancel',$user_permissionArr)}
+            {if $orderItem['order_type'] == '1'}
+                {if $orderItem['status']=='1' || $orderItem['status']=='2'}
+                <a class="btn btn-default btn-sm order-cancel-btn" data-orderid="{$orderItem['id']}" data-toggle="tooltip" data-placement="top" data-original-title="取消订单" href="javascript:;"><i class="icon icon-order-cancel"></i></a>
+                {/if}
+            {elseif $orderItem['order_type'] == '2'}
+
+            {/if}
+            {/if}
+	    	{if $pay_setting['wechat_refund']['switch'] == '1' && (in_array('store_class_refund',$user_permissionArr) || in_array('store_order_refund',$user_permissionArr))}
+            <a class="btn btn-default btn-sm refund-modal" href="javascript:;" data-target="#refund_{$orderItem['id']}" data-id="{$orderItem['id']}"><i class="icon icon-refund"></i></a>
+            
+            {/if}
+            {if in_array('store_members_show', $user_permissionArr) && !empty($orderItem['member_id'])}
+            <a href="{php echo manage_url(array('r'=>'members','ac'=>'index','op'=>'detail', 'id' => $orderItem['member_id']))}" class="btn btn-default btn-sm" target="_blank" data-toggle="tooltip" data-placement="top" data-original-title="用户信息" href="javascript:;"><i class="icon icon-yonghu"></i></a>
+            {/if}
+	    </div>
+	    <!--外卖配送-->
+	    {if $orderItem['order_type'] == '2'}
+	    <div class="order-takeout">
+	    {if $orderItem['deliver_type']=='0'}
+	    	<span class="label label-warning">商家配送</span>
+	    {elseif $orderItem['deliver_type']=='1'}
+	    	<span class="label label-warning showpop" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-html="true" data-content="<p style='width:200px;'>{if empty($orderItem['deliverText'])}暂未收到消息{else}{$orderItem['deliverText']}{/if}</p>">达达配送</span>
+        {elseif $orderItem['deliver_type']=='-1'}
+        	<span class="label label-danger showpop" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-html="true" data-content="<p style='width:200px;'>达达配送失败，原因：{$orderItem['deliver_dada_failreason']}</p>">配送失败</span>
+        	{if in_array('store_class_deal',$user_permissionArr)}<a href="{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'to_dada','orderid'=>$orderItem['id'],'method'=>'takeout'))}" class="text-danger"><i class="fa fa-refresh" data-toggle="tooltip" data-placement="top" data-original-title="重新提交至达达"></i></a>{/if}
+	    {/if}
+	    </div>
+	    {/if}
+	    {if !empty($orderItem['order_number'])}
+	    <div class="order-num {if !empty($orderItem['deskInfo']['name'])}desk-number{/if}">
+	    {if !empty($orderItem['deskInfo']['name'])}<p class="text-warning">{$orderItem['deskInfo']['name']}</p>{/if}
+	    <p>{$orderItem['order_number']}</p>
+	    {if $orderItem['order_type']=='1'}<p class="text-danger" style="font-size: 14px;">{$orderItem['getfood_time']}</p>{/if}
+	    </div>
+	    {/if}
+		<div class="order-status">
+			{if $orderItem['order_type'] == '1'}
+                {if $orderItem['status']=='1'}
+                <span class="status-danger">等待接单</span>
+                {elseif $orderItem['status']=='2'}
+                <span class="status-warning">制作中</span>
+                {elseif $orderItem['status']=='3'}
+                <span class="status-success">已完成</span>
+                {elseif $orderItem['status']=='-1'}
+                <span class="status-info">已取消</span>
+                {/if}
+            {elseif $orderItem['order_type'] == '2'}
+                {if $orderItem['status']=='0'}
+                <span class="status-default">等待付款</span>
+                {elseif $orderItem['status']=='1'}
+                <span class="status-danger">等待接单</span>
+                {elseif $orderItem['status']=='2'}
+                <span class="status-warning">待配送</span>
+                {elseif $orderItem['status']=='4'}
+                <span class="status-warning">正在配送</span>
+                {elseif $orderItem['status']=='5'}
+                <span class="status-info">订单已关闭</span>
+                {elseif $orderItem['status']=='3'}
+                <span class="status-success">已完成</span>
+                {/if}
+            {/if}
+		</div>
+	</div>
+	<div class="modal fade" id="refund_{$orderItem['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">退款订单号：{$orderItem['ordersn']}</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单实际支付</label>
+                <div class="col-sm-3 col-xs-12">
+                    <p class="form-control-static">{$orderItem['pay_price']}元</p>
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label text-right">已退金额</label>
+                <div class="col-sm-3 col-xs-12 text-right">
+                    <p class="form-control-static">{$orderItem['refund_fee']}元</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">本次退款</label>
+                <div class="col-sm-9 col-xs-12">
+                    <div class="input-group">
+                        <input type="text" name="refund_fee_{$orderItem['id']}" class="form-control" value="" />
+                        <span class="input-group-addon">元</span>
+                    </div>
+                    <div class="help-block">本次退款不能大于{php echo $orderItem['pay_price']-$orderItem['refund_fee']}</div>
+                </div>
+                
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">退款原因</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="text" name="refund_reason_{$orderItem['id']}" class="form-control" value="" />
+                    <div class="help-block"></div>
+                </div>
+                
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary refund-btn" data-id="{$orderItem['id']}">退款</button>
+          </div>
+        </div>
+      </div>
+    </div>
+	{/loop}
+	
+</form>
+</div>
+{$pager}
+{/if}
+
+{/if}
+</div>
+</div>
+<script type="text/javascript">
+	require(['{$dmSiteroot}/addons/deam_food/static/js/dist/jquery/jquery.masonry.min.js'],function(){
+		var $container = $('#masonry');
+	   	$container.imagesLoaded(function() {
+	        $container.masonry({
+                itemSelector: '.box',
+                gutter: 20,
+                isAnimated: true,
+            });
+	     });
+	});
+	require(['bootstrap'], function ($) {
+        $('.showtitle').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+        $('.showpop').on('shown.bs.popover', function () {
+            $('.showpop').not(this).popover('hide');
+        });
+        $('[data-toggle="popover"]').popover("destroy").popover({
+            container: $(document.body)
+        });
+    });
+    $(".refund-btn").on("click",function(){
+        var orderId = $(this).data("id");
+        var refundFee = $("input[name='refund_fee_"+orderId+"']").val();
+        var refundReason = $("input[name='refund_reason_"+orderId+"']").val();
+        if(refundFee == ''){
+            util.message("退款金额不能为空！");
+            return false;
+        }
+        $.ajax({
+            url:"{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'refund'))}",
+            type:'POST', //GET
+            async:true,    //或false,是否异步
+            data:{
+                orderid:orderId,
+                refund_fee:refundFee,
+                refund_reason:refundReason,
+            },
+            timeout:5000,    //超时时间
+            dataType:'json',    //返回的数据格式：json/xml/html/script/jsonp/text
+            beforeSend:function(xhr){
+            },
+            success:function(data,textStatus,jqXHR){
+                console.log(data)
+                console.log(textStatus)
+                console.log(jqXHR)
+                if(data.status == 0){
+                    util.message(data.result.message);
+                }else{
+                    util.message(data.result.message,"{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'list','status'=>$_GPC['status'],'method'=>$_GPC['method']))}","success");
+                }
+            },
+            error:function(xhr,textStatus){
+                console.log('错误')
+                console.log(xhr)
+                console.log(textStatus)
+            },
+        })
+    });
+    $('.jumpUrl').on("click", function(){
+        event.stopPropagation();
+        var url = $(this).data('href');
+        if(url != "" || url != undefined){
+            window.location.href = url;
+        }
+    })
+    $('.refund-modal').on("click",function(){
+        event.stopPropagation();
+        var data = $(this).data();
+        $(data.target).modal()
+        
+        //$('#refund').modal()
+    });
+    $(".call-bell").on("click",function(){
+        event.stopPropagation();
+        var orderId = $(this).data("orderid");
+        $.ajax({
+            url:"{php echo manage_url(array('r'=>'order','ac'=>'bell','op'=>'get_food'))}",
+            type:'POST', //GET
+            //async:true,    //或false,是否异步
+            data:{
+                orderid:orderId
+            },
+            timeout:5000,    //超时时间
+            dataType:'json',    //返回的数据格式：json/xml/html/script/jsonp/text
+            beforeSend:function(xhr){
+            },
+            success:function(data,textStatus,jqXHR){
+                if(data.status == 0){
+                    util.message(data.result.err_msg);
+                }else{
+                    var promptSound = new Audio(data.result.message);
+                    promptSound.play();
+                }
+                console.log(data)
+                console.log(textStatus)
+                console.log(jqXHR)
+            },
+            error:function(xhr,textStatus){
+                console.log('错误')
+                console.log(xhr)
+                console.log(textStatus)
+            },
+        })
+    });
+    layui.use(['form','layer'], function(){
+        var form = layui.form, layer = layui.layer;
+        form.on('checkbox(checkAll)', function(data){
+            if(data.elem.checked){
+                $('.order-box').addClass('active');
+            }else{
+                $('.order-box').removeClass('active');
+            }
+        });
+        $('.order-cancel-btn').on("click", function(){
+            const self = this;
+            layer.confirm('确认取消该订单？<br>取消后用户付款金额将原路退回。<br>已用优惠券无法退回！', {icon: 3, title:'提示'}, function(index){
+                console.log($(self).data());
+                var orderid = $(self).data('orderid');
+                layer.close(index);
+                $.ajax({
+                    url:"{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'cancel_order'))}",
+                    type:'POST',
+                    data:{
+                        orderid: orderid
+                    },
+                    timeout:5000,
+                    dataType:'json',
+                    beforeSend:function(xhr){
+                    },
+                    success:function(data,textStatus,jqXHR){
+                        if(data.status == 0){
+                            util.message(data.result.message);
+                        }else{
+                            layer.confirm('订单已取消！', {icon: 1, title:'提示'}, function(index){
+                                layer.close(index);
+                                window.location.reload();
+                            })
+                        }
+                        
+                    },
+                    error:function(xhr,textStatus){
+                        console.log('错误')
+                        console.log(xhr)
+                        console.log(textStatus)
+                    },
+                })
+            });
+        });
+        $('.cancelDeliver').on("click", function () {
+            const self = this;
+            layer.confirm('确认取消达达配送？<br>成功取消后该订单将无法重新提交至达达！', {icon: 3, title:'提示'}, function(index){
+                var orderid = $(self).data('orderid');
+                layer.close(index);
+                var loadIndex;
+                $.ajax({
+                    url:"{php echo manage_url(array('r'=>'order','ac'=>'index','op'=>'cancel_deliver_dada'))}",
+                    type:'POST',
+                    data:{
+                        orderid: orderid
+                    },
+                    timeout:5000,
+                    dataType:'json',
+                    beforeSend:function(xhr){
+                        loadIndex = layer.load();
+                    },
+                    success:function(data,textStatus,jqXHR){
+                        layer.close(loadIndex);
+                        if(data.status == 0){
+                            util.message(data.result.message);
+                        }else{
+                            layer.confirm(data.result.message, {icon: 1, title:'提示'}, function(index){
+                                layer.close(index);
+                                window.location.reload();
+                            })
+                        }
+
+                    },
+                    error:function(xhr,textStatus){
+                        console.log('错误')
+                        console.log(xhr)
+                        console.log(textStatus)
+                    },
+                })
+            });
+        });
+    });
+    $('.order-box').on("click", function(){
+        // const self = this;
+        // if($(self).hasClass('active')){
+        //     $(self).removeClass('active');
+        // }else{
+        //     $(self).addClass('active');
+        // }
+    })
+</script>
+{mtemplate '_footer'}

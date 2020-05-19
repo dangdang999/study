@@ -1,0 +1,61 @@
+{template 'system/common/header-base'}
+<nav class="dm-navbar" style="text-align: left;">
+	<div class="logo">
+		<img src="{if empty($settings['login_logo'])}../addons/deam_food/icon.jpg{else}{media $settings['login_logo']}{/if}">
+	</div>
+	{php $menu = $this->deamMenu();}
+	<ul>
+		{loop $menu $fram}
+		<li class="{$fram['active']}" style="text-align: left;">
+	        <a href="{$fram['url']}">
+	            <i class="{$fram['icon']}" style="margin-left: 20px;"></i>
+	            <span class="nav-label">{$fram['title']}</span>
+	        </a>
+	    </li>
+	    {/loop}
+	</ul>
+</nav>
+<!--topnav-->
+<style type="text/css">
+.wxapp-name{
+	line-height: 55px;
+	margin-left: 15px;
+	font-size: 20px;
+}
+.wxapp-name i{
+	font-size: 24px;
+	margin-right: 8px;
+	vertical-align: middle;
+}
+</style>
+{php $selected_account = $this->deamSelected_account();}
+<div class="dm-navbar-header">
+	<ul>
+		{if !empty($selected_account)}
+		<a class="wxapp-name" href="{php echo url('wxapp/display/switch', array('uniacid' => $selected_account['uniacid'], 'version_id' => $selected_account['version_id']))}" title="快速点餐 v1.0.1" target="_blank">
+					<i class="wi wi-wxapp"></i>{$selected_account['name']} {$selected_account['version']}				</a>
+		{/if}
+		<li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{$_W['user']['username']}<span class="deam-icondown"></span></a>
+            <ul class="dropdown-menu">
+            	<li><a href="{url 'user/profile'}" target="_blank">我的账号</a></li>
+            	{if $_W['isfounder']}
+            	<li><a href="{url 'system/updatecache'}" target="_blank">更新缓存</a></li>
+            	{/if}
+            	<li><a href="./index.php?c=miniapp&a=version&do=home&version_id={php echo intval($_GPC['version_id'])}" target="_blank">返回系统</a></li>
+                <li class="divider"></li>
+                <li><a onclick="return confirm('确定退出登录？');return false;" href="{url 'user/logout'}"> 退出登录</a></li>
+            </ul>
+        </li>
+        {if $_W['isfounder']}
+		<li data-toggle="tooltip" data-placement="bottom" data-original-title="系统管理">
+            <a href="{php echo $this->createWebUrl('settings',array('op'=>'system'))}"><i class="icon icon-shezhi"></i></a>
+        </li>
+		{/if}
+		{if !empty($frames['section']['platform_module_common']['menu']['platform_module_permissions'])}
+		<li data-toggle="tooltip" data-placement="bottom" data-original-title="权限管理">
+            <a href="{php echo $this->createWebUrl('permission')}"><i class="icon icon-quanxian"></i></a>
+        </li>
+		{/if}
+	</ul>
+</div>

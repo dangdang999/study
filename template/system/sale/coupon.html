@@ -1,0 +1,1630 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">营销管理</div>
+    <ul>
+    	<li class="{if $operation == 'rules' || $operation == 'rules_post'}active{/if}"><a href="{php echo $this->createWebUrl('coupon',array('op'=>'rules'))}">营销规则</a></li>
+    	<li class="{if $operation == 'display'}active{/if}"><a href="{php echo $this->createWebUrl('coupon',array('op'=>'display'))}">卡券列表</a></li>
+    	<li class="{if $operation == 'recharge'}active{/if}"><a href="{php echo $this->createWebUrl('coupon',array('op'=>'recharge'))}">充值优惠</a></li>
+    	<li class="{if $operation == 'credit1'}active{/if}"><a href="{php echo $this->createWebUrl('coupon',array('op'=>'credit1'))}">积分优惠</a></li>
+        <li class="{if $operation == 'settings'}active{/if}"><a href="{php echo $this->createWebUrl('coupon',array('op'=>'settings'))}">设置</a></li>
+        
+    </ul>
+</div>
+<div class="dm-container">
+<div class="dm-content">
+{if $operation == 'bind_rules'}
+<div class="col-sm-6">
+	<p class="text-center" style="font-size: 26px;">堂食/自取</p>
+</div>
+<div class="col-sm-6">
+	<p class="text-center" style="font-size: 26px;">外卖</p>
+</div>
+{elseif $operation == 'rules'}
+<div class="we7-padding-bottom clearfix">
+	<div class="pull-left">
+		<a href="{php echo $this->createWebUrl('coupon',array('op'=>'rules_post'))}" class="btn btn-primary we7-padding-horizontal">+添加营销规则</a>
+	</div>
+</div>
+{if empty($list)}
+<div class="panel we7-panel panel-default">
+    <div class="panel-body" style="text-align: center;padding:30px;">
+       	还未添加营销规则
+    </div>
+</div>
+{else}
+<div class="table-responsive panel-body">
+	<table class="table we7-table table-hover">
+		<thead class="navbar-inner">
+			<tr>
+				<th width="120px">规则名称</th>
+				<th width="150px" class="text-center">活动时间</th>
+				<th width="70px" class="text-center">状态 <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" data-original-title="目前只能开启一个规则"></i></th>
+				<th width="100px" class="text-center">创建时间</th>
+				<th style="width:250px; text-align:right;">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+		{loop $list $k $item}
+		<tr>
+			<td>{$item['title']}</td>
+			<td class="text-center">{php echo date('Y-m-d H:i:s',$item['starttime'])} 至 {php echo date('Y-m-d H:i:s',$item['endtime'])}</td>
+			<td class="text-center">
+				{if TIMESTAMP < $item['starttime']}
+				<span class="text-danger">未开始</span>
+				{elseif TIMESTAMP > $item['endtime']}
+				<span class="text-danger">已结束</span>
+				{else}
+					{if empty($item['status'])}
+					<span class="text-warning">暂停中</span>
+					{else}
+					<span class="text-success">进行中</span>
+					{/if}
+				{/if}
+			</td>
+			<td class="text-center">{php echo date('Y-m-d H:i',$item['createtime'])}</td>
+			<!-- <td>
+				{if $item['is_display'] == 1}
+					<span class="label label-success">上架中</span>
+				{else}
+					<span class="label label-danger">已下架</span>
+				{/if}
+			</td> -->
+			<td style="text-align:right;">
+				<a href="{php echo $this->createWeburl('coupon', array('op' => 'rules_post', 'id' => $item['id']))}" class="btn btn-success btn-sm" title="查看详情">编辑</a>
+				{if TIMESTAMP > $item['starttime'] && TIMESTAMP < $item['endtime']}
+					{if empty($item['status'])}
+					<a href="{php echo $this->createWeburl('coupon', array('op' => 'rules_status','status'=>'1', 'id' => $item['id']))}"  class="btn btn-info btn-sm" title="启用" onclick="if(!confirm('启用后其他规则将自动暂停，是否继续启用?')) return false;">启用</a>
+					{else}
+					<a href="{php echo $this->createWeburl('coupon', array('op' => 'rules_status','status'=>'0', 'id' => $item['id']))}"  class="btn btn-danger btn-sm" title="暂停" onclick="if(!confirm('确定暂停?')) return false;">暂停</a>
+					{/if}
+				{/if}
+				<a href="{php echo $this->createWeburl('coupon', array('op' => 'delete_rules', 'id' => $item['id']))}"  class="btn btn-default btn-sm" title="删除" onclick="if(!confirm('删除后将不可恢复，确定删除吗?')) return false;">删除</a>
+			</td>
+		</tr>
+		{/loop}
+		</tbody>
+	</table>
+	{$pager}
+</div>
+{/if}
+{elseif $operation == 'rules_post'}
+<style type="text/css">
+.coupon-list{
+	padding-top: 20px;
+}
+.coupon-con .panel-body{
+	padding: 15px;
+	position: relative;
+}
+.coupon-box{
+	width: 300px;
+	background: #ffab3d;
+	color: #fff;
+	position: relative;
+}
+.coupon-box .title{
+	padding: 10px 20px;
+	border-bottom: 2px #fff dashed;
+	overflow: hidden;
+	height: 43px;
+}
+.coupon-box .around-l,.coupon-box .around-r{
+	position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 20px;
+    top: 32px;
+    background: #fff;
+}
+.coupon-box .around-l{
+	left: -10px;
+}
+.coupon-box .around-r{
+	right: -10px;
+}
+.coupon-box .content{
+	padding: 20px 20px 5px 20px;
+	position: relative;
+}
+.coupon-box .price{
+	font-size: 24px;
+}
+.coupon-box .limit{
+	position: absolute;
+	top: 25px;
+	right: 20px;
+	color: #921313;
+}
+.coupon-box .deadline{
+	padding-top: 20px;
+	font-size: 12px;
+}
+.coupon-con .input-group{
+	width: 120px;
+	margin-top: 60px;
+}
+.coupon-con .input-group input{
+	text-align: center;
+}
+.trash-box{
+}
+.trash-box i{
+	margin-top: 60px;
+	font-size: 22px;
+	color: #921313;
+}
+</style>
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<input type="hidden" name="id" value="{$rules_info['id']}">
+<ul class="we7-page-tab" id="myTab" style="margin-top: 0;margin-top: -20px;margin-left: -20px;">
+    <li class="active" ><a href="#tab_basic">基本信息</a></li>
+    <li><a href="#tab_coupon">赠券管理</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="tab_basic">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 活动名称</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" class="form-control" name="title" value="{$rules_info['title']}" />
+				<div class="help-block"></div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 活动时间</label>
+			<div class="col-sm-9 col-xs-12">
+				{php echo tpl_form_field_daterange('act_time', array('starttime'=>date('Y-m-d H:i:s',$rules_info['starttime']),'endtime'=>date('Y-m-d H:i:s',$rules_info['endtime'])),true)}
+				<div class="help-block"></div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 执行规则</label>
+			<div class="col-sm-9 col-xs-12">
+				<div class="input-group">
+					<span class="input-group-addon">当消费满</span>
+					<input type="text" class="form-control" name="reduce_cost" value="{$rules_info['reduce_cost']}" />
+					<span class="input-group-addon">元时赠送</span>
+				</div>
+				<div class="" style="margin-top: 10px;">
+					<label><input type="checkbox" name="repeat_send" id="repeat-send" value="1" {if !empty($rules_info['repeat_send'])} checked="" {/if}>重复赠送（消费每满消费值后会重复赠送）</label>
+				</div>
+				<div class="input-group repeat-send" style="margin-top: 10px;{if empty($rules_info['repeat_send'])}display: none{/if}">
+					<span class="input-group-addon">最多赠送</span>
+					<input type="text" class="form-control" name="limit_send" placeholder="不限制请设置为0"  value="{$rules_info['limit_send']}"/>
+					<span class="input-group-addon">次</span>
+				</div>
+				<div class="help-block"></div>
+			</div>
+		</div>
+		<input type="button" class="btn btn-default tab_btn" value="下一步" />
+	</div>
+	<?php echo base64_decode('5pu05aSa5rqQ56CB6K+36K6/6Zeu6LWE5rqQ6YKm5rqQ56CB572R4oCUd3d3LndhenliLmNvbQ=='); ?>
+	<div class="tab-pane" id="tab_coupon">
+		<a class="btn btn-success" id="choose-coupon">选择优惠券</a>
+		<div class="coupon-list">
+			<div class="panel we7-panel panel-default coupon-none" {if !empty($rules_info['coupon_info'])} style="display: none" {/if}>
+			    <div class="panel-body" style="text-align: center;padding:30px;">
+			       	还未选择优惠券
+			    </div>
+			</div>
+			{loop $rules_info['coupon_info'] $coupon_info}
+			<div class="panel we7-panel panel-default coupon-con coupon{$coupon_info['id']}">
+				<div class="panel-heading clearfix">
+					<div class="col-sm-6">优惠券信息</div>
+					<div class="col-sm-3"></div>
+			       	<div class="col-sm-3">每人每次发券数量</div>
+				</div>
+			    <div class="panel-body">
+			    <input type="hidden" name="couponid[]" value="{$coupon_info['id']}">
+			       	<div class="col-sm-6">
+			       		<div class="coupon-box">
+			       			<div class="around-l"></div>
+			       			<div class="around-r"></div>
+			       			<div class="title">{$coupon_info['title']}</div>
+			       			<div class="content">
+			       				<span class="price">￥{php echo $coupon_info['reduce_cost']/100}</span>
+			       				<div class="limit">满{php echo $coupon_info['least_cost']/100}可用</div>
+			       				<p class="deadline">{$coupon_info['limit']}</p>
+			       			</div>
+			       		</div>
+			       	</div>
+			       	<div class="col-sm-3 trash-box"><i data-couponid="{$coupon_info['id']}" data-toggle="tooltip" data-placement="top" data-original-title="移除该卡券" class="fa fa-trash remove-coupon"></i></div>
+			       	<div class="col-sm-3">
+				       	<div class="input-group">
+				       		<span class="input-group-addon minus" data-couponid="{$coupon_info['id']}">-</span>
+							<input type="text" class="form-control coupon-count" name="coupon_count[{$coupon_info['id']}]" value="{$coupon_info['count']}" readonly="" />
+							<span class="input-group-addon plus" data-couponid="{$coupon_info['id']}">+</span>
+						</div>
+			       	</div>
+			    </div>
+			</div>
+			{/loop}
+		</div>
+		<div style="margin-top: 15px;"><input type="button" class="btn btn-default tab_back" value="上一步"><input style="margin-left: 15px;" name="submit" type="submit" value="提交" class="btn btn-primary"><input type="hidden" name="token" value="{$_W['token']}" /></div>
+	</div>
+
+	<div class="modal fade" id="coupon-modal" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">选择优惠券</h4>
+				</div>
+				<div class="modal-body clearfix form-horizontal">
+					
+					<select class="form-control" id="couponid">
+						{loop $list $coupon}
+						<option value="{$coupon['id']}" data-id="{$coupon['id']}" data-title="{$coupon['title']}" data-least_cost="{php echo $coupon['least_cost']/100}" data-reduce_cost="{php echo $coupon['reduce_cost']/100}" data-limit="{$coupon['date_info']}">{$coupon['title']}</option>
+						{/loop}
+					</select>
+					
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-primary coupon-confirm">确定</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</form>
+<script type="text/javascript">
+$(function () {
+    window.optionchanged = false;
+    $('#myTab a').click(function (e) {
+        e.preventDefault();//阻止a链接的跳转行为
+        $(this).tab('show');//显示当前选中的链接及关联的content
+    });
+    $('.tab_btn').click(function(){
+    	$("[href='#tab_coupon']").trigger("click");
+    	
+    });
+    $('.tab_back').click(function(){
+    	$("[href='#tab_basic']").trigger("click");
+    	
+    });
+    $("#repeat-send").change(function(){
+    	if($(this).get(0).checked){
+    		$(".repeat-send").show()
+    	}else{
+    		$(".repeat-send").hide()
+    	}
+    });
+    $('#choose-coupon').click(function() {
+    	var couponCount = $(".coupon-con").length;
+    	if(couponCount >=1){
+    		util.message("只能添加1种优惠券！",'','error');
+    	}else{
+    		$('#coupon-modal').modal(); 
+    	}
+	});
+	$(".coupon-list").on("click",".remove-coupon",function(){
+		var couponId = $(this).data("couponid");
+		if(confirm('确定移除该优惠券?')){
+			$(".coupon"+couponId).remove();
+		}
+	})
+	$(".coupon-confirm").on("click",function(){
+		var couponId = $("#couponid option:selected").data("id");
+		var couponTitle = $("#couponid option:selected").data("title");
+		var couponLeast_cost = $("#couponid option:selected").data("least_cost");
+		var couponReduce_cost = $("#couponid option:selected").data("reduce_cost");
+		var couponLimit = $("#couponid option:selected").data("limit");
+		if ($( ".coupon"+couponId ).length>0){
+			util.message("该优惠券已存在！",'','error');
+			return false;
+		}
+		var html = '<div class="panel we7-panel panel-default coupon-con coupon'+couponId+'"><div class="panel-heading clearfix"><div class="col-sm-6">优惠券信息</div><div class="col-sm-3"></div><div class="col-sm-3">每人每次发券数量</div></div>';
+		html += '<div class="panel-body">';
+		html += '<input type="hidden" name="couponid[]" value="'+couponId+'">';
+		html += '<div class="col-sm-6">';
+		html += '<div class="coupon-box">';
+		html += '<div class="around-l"></div>';
+		html += '<div class="around-r"></div>';
+		html += '<div class="title">'+couponTitle+'</div>';
+		html += '<div class="content">';
+		html += '<span class="price">￥'+couponReduce_cost+'</span>';
+		html += '<div class="limit">满'+couponLeast_cost+'可用</div>';
+		html += '<p class="deadline">'+couponLimit+'</p>';
+		html += '</div>';
+		html += '</div>';
+		html += '</div>';
+		html += '<div class="col-sm-3 trash-box"><i data-couponid="'+couponId+'" data-toggle="tooltip" data-placement="top" data-original-title="移除该卡券" class="fa fa-trash remove-coupon"></i></div>';
+		html += '<div class="col-sm-3">';
+		html += '<div class="input-group">';
+		html += '<span class="input-group-addon minus" data-couponid="'+couponId+'">-</span>';
+		html += '<input type="text" class="form-control coupon-count" name="coupon_count['+couponId+']" value="1" readonly/>';
+		html += '<span class="input-group-addon plus" data-couponid="'+couponId+'">+</span>';
+		html += '</div>';
+		html += '</div>';
+		html += '</div>';
+		html += "</div>";
+		//
+		$(".coupon-none").css({'display':'none'});
+		console.log(html);
+		$(".coupon-list").append(html);
+		$('#coupon-modal').modal('hide');
+	});
+	$(".coupon-list").on("click",".minus",function(){
+		var couponId = $(this).data("couponid");
+		var couponCount = parseInt($('.coupon'+couponId+' .coupon-count').val());
+		if(couponCount>1){
+			couponCount --;
+			$('.coupon'+couponId+' .coupon-count').val(couponCount)
+		}
+	})
+	$(".coupon-list").on("click",".plus",function(){
+		var couponId = $(this).data("couponid");
+		var couponCount = parseInt($('.coupon'+couponId+' .coupon-count').val());
+		couponCount ++;
+		$('.coupon'+couponId+' .coupon-count').val(couponCount)
+	})
+	$('#form').submit(function(){
+    	if(!$.trim($(':input[name="title"]').val())) {
+			util.message('活动名称不能为空', '','error');
+			return false;
+		}
+		if($(".coupon-con").length < 1){
+			util.message('至少需要绑定一张优惠券', '','error');
+			return false;
+		}
+	})
+})
+</script>
+{elseif $operation == 'display'}
+<div class="we7-padding-bottom clearfix">
+	<div class="pull-left">
+		<a href="javascript:;" class="btn btn-primary we7-padding-horizontal"  data-toggle="modal" data-target="#chooseCouponType">+添加优惠券</a><!-- {php echo $this->createWebUrl('coupon',array('op'=>'post'))} -->
+	</div>
+</div>
+<div class="modal fade" id="chooseCouponType" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<span class="close" data-dismiss="modal" aria-label="Close"><i style="font-style: normal;" aria-hidden="true">&times;</i></span>
+				<h4 class="modal-title" id="myModalLabel">选择你要创建的卡券类型</h4>
+			</div>
+			<div class="modal-body">
+	        	<div class="form-group marbot0">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="type" id="couponType" value="general_coupon" checked=""> 微信代金券
+						</label>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+			</div>
+			<div class="modal-footer">
+				<a class="btn btn-primary" href="javascript:window.location.href='{php echo $this->createWebUrl('coupon',array('op'=>'post'))}&card_type='+$('#couponType:checked').val()">确定</a>
+			</div>
+		</div>
+	</div>
+</div>
+{if empty($list)}
+<div class="panel we7-panel panel-default">
+    <div class="panel-body" style="text-align: center;padding:30px;">
+       	还未添加优惠券
+    </div>
+</div>
+{else}
+<div class="modal fade" id="put-coupon">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body">
+				<div class="form-group">
+					<ul class="nav nav-tabs" role="tablist">
+					<li role="presentation" class="active"><a href="#put-qrcode" aria-controls="qrcode" role="tab" data-toggle="tab">二维码</a></li>
+				</ul>
+				</div>
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
+						<div class="mui-content-padded mui-text-center">
+							<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="quantity-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">修改库存</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<input type="text" class="form-control" name="quantity" />
+				<input type="hidden" name="quantity_coupon_id">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="util.ajaxshow('{php echo $this->createWeburl('coupon', array('op' => 'modifystock'))}&quantity=' + $('input[name=quantity]').val() + '&id='+ $('input[name=quantity_coupon_id]').val())">确定</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="table-responsive panel-body">
+	<table class="table we7-table table-hover">
+		<thead class="navbar-inner">
+			<tr>
+				<th width="120px">卡券名称</th>
+				<th width="80px">类型</th>
+				<th width="150px">卡券有效期</th>
+				<th width="70px" class="text-center">状态</th>
+				<th width="100px">库存</th>
+				<th width="50px">限领</th>
+				<!-- <th width="80px">上架状态</th> -->
+				<th style="width:450px; text-align:right;">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+		{loop $list $k $item}
+		<tr>
+			<td>{$item['title']}</td>
+			<td>{if $item['type'] == '2'}代金券{elseif $item['type'] == '5'}优惠券{/if}</td>
+			<td>
+				{$item['date_info']}
+			</td>
+			<td class="text-center">
+				{if $item['type'] == '2'}
+				-
+				{else}
+				{if $item['status'] == '1'}
+				<span class="label label-info">审核中</span>
+				{elseif $item['status'] == '2'}
+				<span class="label label-danger">未通过</span>
+				{elseif $item['status'] == '3'}
+				<span class="label label-success">已通过</span>
+				{elseif $item['status'] == '4'}
+				<span class="label label-default">卡券被商户删除</span>
+				{elseif $item['status'] == '5'}
+				<span class="label label-warning">已在公众平台投放</span>
+				{/if}
+				{/if}
+			</td>
+			<td>{$item['quantity']}</td>
+			<td>{$item['get_limit']}</td>
+			<!-- <td>
+				{if $item['is_display'] == 1}
+					<span class="label label-success">上架中</span>
+				{else}
+					<span class="label label-danger">已下架</span>
+				{/if}
+			</td> -->
+			<td style="text-align:right;">
+			{if $item['type'] == 5}
+				<a href="#put-coupon" data-toggle="modal" data-cid={$item['id']} class="btn btn-default btn-sm js-publish">投放</a>
+				<a href="javascript:;" class="btn btn-default btn-sm change_quantity" data-id="{$item['id']}">修改库存</a>
+			{/if}
+				<!-- <a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'toggle', 'id' => $item['id']))}')" class="btn btn-default btn-sm toggle-display" title="上架/下架">{if $item['is_display'] == 1}下架{else}上架{/if}</a> -->
+				<a href="{php echo $this->createWeburl('coupon', array('op' => 'detail', 'id' => $item['id']))}" class="btn btn-success btn-sm" title="查看详情">查看详情</a>
+				<a href="{php echo $this->createWeburl('coupon', array('op'=>'log','couponid' => $item['id'], 'status' => '0'))}"  class="btn btn-default btn-sm" title="领取记录">领取记录</a>
+				<a href="{php echo $this->createWeburl('coupon', array('op' => 'delete', 'id' => $item['id']))}"  class="btn btn-default btn-sm" title="删除" onclick="if(!confirm('删除后将不可恢复，确定删除吗?')) return false;">删除</a>
+			</td>
+		</tr>
+		{/loop}
+		</tbody>
+	</table>
+	{$pager}
+</div>
+<script type="text/javascript">
+require(['jquery.qrcode'], function(){
+	$(document).on('click', '.js-publish', function() {
+		cid = $(this).data('cid');
+		$.post("{php echo $this->createWeburl('coupon', array('op' => 'publish'))}", {'cid' : cid}, function(data) {
+			var data = $.parseJSON(data);
+			if (data.message.errno == '0') {
+				var coupon = data.message.message;
+				
+				if (coupon.url) {
+					var url = coupon.url;
+					$('.js-qrcode-block').html('').qrcode({
+						render: 'canvas',
+						width: 300,
+						height: 300,
+						text: url,
+					});
+				} else if(coupon.coupon.url) {
+					var url = coupon.coupon.url;
+					$('.js-qrcode-block img').remove();
+					$('.js-qrcode-block').append('<img src="'+url+'"/>');
+				}
+				
+			} else {
+				$('#put-coupon').modal('hide');
+				util.message(data.message.message);
+			}
+		});
+	});
+	$('.change_quantity').click(function() {
+		coupon_id = $(this).data('id');
+		$('input[name="quantity_coupon_id"]').val(coupon_id);
+		$('#quantity-modal').modal();
+	})
+})
+</script>
+{/if}
+{elseif $operation == 'post'}
+<style type="text/css">
+.dm-content{
+	
+}
+.card_preview_area {
+	float: left;
+    width: 318px;
+    margin-right: 16px;
+    padding-bottom: 150px;
+    overflow: hidden;
+    background: #f6f6f8 url(../addons/deam_food/static/images/topbar.png) no-repeat center 5px;
+}
+.card_preview_area[style^="background-color"] {
+    background-image: url(../addons/deam_food/static/images/topbar_white.png);
+}
+.card_preview_area .card_body {
+    margin: 64px 10px 10px;
+}
+.card_preview_area .msg_card_cell {
+	background-color: #fff;
+	*zoom: 1
+}
+
+.card_preview_area .logo_area {
+	position: relative;
+	margin-bottom: 7px;
+	line-height: 42px;
+	color: #8d8d8d;
+	margin-top: -40px
+}
+
+.card_preview_area .logo {
+	display: block;
+	width: 38px;
+	height: 38px;
+	padding-top: 0;
+	margin: 0 auto;
+	border-radius: 22px;
+	-moz-border-radius: 22px;
+	-webkit-border-radius: 22px;
+	float: none;
+	border: 1px solid #e7e7eb;
+	background-color: #fff
+}
+
+.card_preview_area .logo img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: inherit;
+	-moz-border-radius: inherit;
+	-webkit-border-radius: inherit
+}
+
+.card_preview_area .logo img[src=""] {
+	display: none
+}
+
+.card_preview_area .logo img[src="http"] {
+	display: block
+}
+
+.card_preview_area .logo img[src="//"] {
+	display: block
+}
+
+.card_preview_area .msg_area {
+	*overflow: hidden
+}
+.msg_card_section {
+	position: relative
+}
+
+.msg_card_section.shop {
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px dashed #e7e7eb;
+	position: relative;
+	background-color: #fff;
+	border-radius: 5px 5px 0 0;
+	-moz-border-radius: 5px 5px 0 0;
+	-webkit-border-radius: 5px 5px 0 0
+}
+.msg_card_section.shop .shop_panel {
+	padding: 21px 12px 12px;
+	*height: 137px;
+	min-height: 137px;
+	height: auto;
+	text-align: center
+}
+.msg_card_section.shop .tick_msg {
+	margin-bottom: 6px
+}
+.msg_card_section.shop .tick_msg .card_name {
+	font-weight: normal;
+	font-size: 28px;
+	word-break: break-word;
+	word-wrap: break-word
+}
+.msg_card_section.shop .time {
+	text-align: center
+}
+.card_preview_area .btn {
+    display: inline-block;
+    overflow: visible;
+    padding: 0 22px;
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    font-size: 14px;
+    border-width: 1px;
+    border-style: solid;
+    cursor: pointer;
+}
+.btn_use_card {
+	border-width: 0;
+	background-color: #f4f5f9
+}
+.btn_use_card[style^="background"] {
+	color: #fff
+}
+.card_usage {
+	text-align: left;
+	padding: 0 10px 1em;
+	background-color: #fff
+}
+.card_usage li {
+	overflow: hidden;
+	padding-left: 5em;
+	clear: both;
+	color: #8d8d8d
+}
+.card_usage .usage_label {
+	float: left;
+	margin-left: -5em;
+	color: #222
+}
+</style>
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<input type="hidden" name="id" value="{$coupon['id']}">
+<ul class="we7-page-tab" id="myTab" style="margin-top: 0;margin-top: -20px">
+    <li class="active" ><a href="#tab_basic">填写优惠券信息</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="tab_basic" style="display: flex;">
+		<div class="card_preview_area js_color_bg_preview affix-top" style="height: 1%">
+			<div class="card_body" id="js_preview_area">
+				<div class="js_preview msg_card_section shop disabled">
+					<div class="shop_panel">
+						<div class="logo_area">
+							<span class="logo">
+							<img id="js_logo_url_preview" src="../addons/deam_food/static/images/no-img.jpg">
+							</span>
+							<p id="js_brand_name_preview">商户名称</p>
+						</div>
+						<div class="msg_area">
+							<div class="tick_msg">
+								<p id="js_title_preview" class="card_name">卡券标题</p>
+								<span class="btn btn_use_card js_use_card_button" id="js_color_preview">使用</span>
+							</div>
+
+							<div class="js_card_pay_money_tips" style="display:none;">
+							</div>
+						</div>
+					</div>
+					<div class="card_usage">
+						<ul>
+						<li><span class="usage_label" id="js_use_condition_preview_p" style="display: none;">使用条件：</span><span id="js_use_condition_preview"></span></li>
+						<li><span class="usage_label">可用时间：</span><span id="js_use_time_preview"></span><span id="js_time_limit_preview">{php echo date('Y.m.d')}-{php echo date('Y.m.d', time() + 30*86400)}</span></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="coupon-form" style="-webkit-box-flex: 1;-webkit-flex: 1;-ms-flex: 1;flex: 1;padding-left: 30px;">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 优惠券标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" class="form-control" name="title"/>
+					<div class="help-block">不超过18个字符</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span class="text-danger">*</span> 商户LOGO</label>
+				
+				<div class="col-md-9" id="logo_upload">
+					{php echo tpl_form_field_image('logo_url',$goods['img'], '../addons/deam_food/static/images/no-img.jpg');}
+				</div>
+				
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 商户名称</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" class="form-control" name="brand_name"/>
+					<div class="help-block">商户名字,字数上限为12个汉字。 </div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 卡券颜色</label>
+				{php echo tpl_coupon_colors('color', '');}
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 最低消费</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<span class="input-group-addon">满</span>
+						<input type="text" class="form-control" name="least_cost" />
+						<span class="input-group-addon">元可用</span>
+					</div>
+					<div class="help-block">最低消费必须大于减免金额</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 减免金额</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<input type="text" class="form-control" name="reduce_cost"/>
+						<span class="input-group-addon">元</span>
+					</div>
+					<div class="help-block">减免金额只能是大于0.01的数字</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="" class="col-xs-12 col-sm-3 col-md-2 control-label">卡券分享</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="checkbox-inline">
+						<input type="checkbox" name="can_share" value="1" id="can_share">用户可以分享领券链接
+					</label>
+					<label class="checkbox-inline">
+						<input type="checkbox" name="can_give_friend" value="1" id="can_give_friend">用户领券后可转赠其他好友
+					</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label" style="padding-top:15px"> 有效期</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="radio">
+						<div class="col-sm-3" style="padding-top:6px"><label><input type="radio" value="1" name="time_type" checked/>固定日期 </label></div>
+						{php echo tpl_form_field_daterange('time_limit', array('start' => date('Y-m-d'), 'end' => date('Y-m-d', time() + 30*86400)));}
+					</div>
+					{if $card_type != 'cash'}
+					<div class="radio">
+						<div class="col-sm-3" style="padding-top:6px"><label><input type="radio" value="2" name="time_type"/>领取后 </label></div>
+						<div class="col-sm-3" style="margin-left:-15px">
+							<select name="deadline" id="deadline" class="form-control">
+								<?php
+								for($i=0; $i<=90; $i++) {
+									if(!$i) $n = '当'; else $n = $i;
+									echo '<option value="'.$i.'">'.$n.'天</option>';
+								}
+								?>
+							</select>
+						</div>
+						<div class="col-sm-3" style="padding-top:6px">有效,有效期</div>
+						<div class="col-sm-3" style="margin-left:-15px">
+							<select name="limit" id="limit" class="form-control">
+								<?php
+								for($i=1; $i<=90; $i++) {
+									echo '<option value="'.$i.'">'.$i.'天</option>';
+								}
+								?>
+							</select>
+						</div>
+
+					</div>
+					{/if}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 库存</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<input type="text" class="form-control" name="quantity" value="300"/>
+						<span class="input-group-addon">份</span>
+					</div>
+					<div class="help-block">库存只能是大于0的数字</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 领券限制</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<input type="text" class="form-control" name="get_limit" value="1"/>
+						<span class="input-group-addon">张</span>
+					</div>
+					<div class="help-block">默认领券限制为1</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠共享</label>
+				<div class="col-sm-9 col-xs-12">
+					<select style="height: 30px;" id="can_use_with_other_discount" name="can_use_with_other_discount" class="form-control">
+						<option value="1">可与其他优惠共享</option>
+						<option value="0">不与其他优惠共享</option>
+					</select>
+					<p class="help-block">使用条件的设置会在券上展示，请务必仔细确认。(仅卡券显示用)</p>
+				</div>
+
+			</div>
+			{if $card_type != 'cash'}
+			<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label">销券方式</label> <div class="col-sm-9 col-xs-12"><div class="radio"><label><input type="radio" name="code_type" value="1"> 仅卡券号</label> <div class="help-block">只显示卡券号，验证后可进行销券</div></div> <div class="radio"><label><input type="radio" name="code_type" value="2"> 二维码</label> <div class="help-block">包含卡券信息的二维码，扫描后可进行销券</div></div> <div class="radio"><label><input type="radio" name="code_type" value="3" checked="checked"> 条形码</label> <div class="help-block">包含卡券信息的条形码，扫描后可进行销券</div></div></div></div>
+			
+			<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 操作提示</label> <div class="col-sm-9 col-xs-12"><input type="text" name="notice" id="notice" value="请在付款时出示此券" class="form-control"> <div class="help-block">建议引导用户到店出示卡券，由店员完成核销操作。不超过16个字符</div></div></div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠详情</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea name="default_detail" rows="5" class="form-control"></textarea>
+					<p class="help-block">文本长度不能超过300字</p>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">使用须知</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea name="description" rows="5" class="form-control"></textarea>
+					<p class="help-block">文本长度不能超过300字</p>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+				<input type="hidden" name="card_type" value="{$card_type}" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</div>
+</div>
+</form>
+<script type="text/javascript">
+$(function () {
+    window.optionchanged = false;
+    $('#myTab a').click(function (e) {
+        e.preventDefault();//阻止a链接的跳转行为
+        $(this).tab('show');//显示当前选中的链接及关联的content
+    })
+    $("[name='title']").on("input on",function(){
+    	$("#js_title_preview").text($(this).val());
+    });
+    $("[name='brand_name']").on("input on",function(){
+    	$("#js_brand_name_preview").text($(this).val());
+    });
+    $('#coupon-form').mouseover(function(){
+    	var bg_color = $(':input[name="color-value"]').val();
+		$('.js_color_bg_preview,#js_color_preview').css('background-color', bg_color);
+    	$("#js_logo_url_preview").attr("src",$('#logo_upload img').attr('src'));
+    	var time_type = $(':radio[name="time_type"]:checked').val();
+		var time = '';
+		if(time_type == 1) {
+			var startime = $("input[name='time_limit[start]']").val();
+			var endtime = $("input[name='time_limit[end]']").val();
+			time = startime.replace(/\-/g, ".")+'-'+endtime.replace(/\-/g, ".");
+		} else if(time_type == 2) {
+			var deadline = parseInt($('#deadline').val());
+
+			var limit = parseInt($('#limit').val());
+			var now = new Date();
+			now.setHours(0, 0, 0);
+			var unixtime =Date.parse(now)/1000;
+			unixtime += (deadline*86400);
+			var startime = new Date(parseInt(unixtime) * 1000).toLocaleString().substr(0,10).replace(/\//g, ".").replace(/ /g, "");
+			unixtime += (limit*86400);
+			var endtime = new Date(parseInt(unixtime) * 1000).toLocaleString().substr(0,10).replace(/\//g, ".").replace(/ /g, "");
+			time = startime+'-'+endtime;
+		}
+		$('#js_time_limit_preview').html(time);
+    })
+    $('#form').submit(function(){
+    	if(!$.trim($(':input[name="title"]').val())) {
+			util.message('标题不能为空', '','error');
+			return false;
+		}
+		if(!$.trim($(':input[name="brand_name"]').val())) {
+			util.message('请填写商户名称', '','error');
+			return false;
+		}
+    	if(!$.trim($(':input[name="color-value"]').val())) {
+			util.message('请选择卡券颜色', '','error');
+			return false;
+		}
+		if(!($(':text[name="reduce_cost"]').val() >= 0.01)) {
+			util.message("减免金额不合法",'','error');
+			return false;
+		}
+		var reduce_cost = parseFloat($(':text[name="reduce_cost"]').val());
+		var least_cost = parseFloat($(':text[name="least_cost"]').val());
+		if(reduce_cost >= least_cost) {
+			util.message("最低消费必须大于减免金额",'','error');
+			return false;
+		}
+		var quantity = parseInt($.trim($(':text[name="quantity"]').val()));
+		if(isNaN(quantity)) {
+			util.message("库存只能是大于0的数字",'','error');
+			return false;
+		}
+		var time_type = $(':radio[name="time_type"]:checked').val();
+		if(!time_type) {
+			util.message('请完善卡券有效期', '','error');
+			return false;
+		}
+		var code_type = $(':radio[name="code_type"]:checked').val();
+		{if $card_type != 'cash'}
+		if(!code_type) {
+			util.message('请选择销券方式','','error');
+			return false;
+		}
+		if(!$.trim($(':text[name="notice"]').val())) {
+			util.message('请完善操作提示', '','error');
+			return false;
+		}
+		if(!$.trim($('textarea[name="default_detail"]').val())) {
+			util.message('请填写优惠详情', '','error');
+			return false;
+		}
+		{/if}
+		if(!$.trim($('textarea[name="description"]').val())) {
+			util.message('请完善使用须知', '','error');
+			return false;
+		}
+    })
+});
+</script>
+{elseif $operation == 'detail'}
+<style type="text/css">
+.dm-content{
+	
+}
+.card_preview_area {
+	float: left;
+    width: 318px;
+    margin-right: 16px;
+    padding-bottom: 150px;
+    overflow: hidden;
+    background: {$coupon_colors[$coupon_info['color']]} url(../addons/deam_food/static/images/topbar_white.png) no-repeat center 5px;
+}
+.card_preview_area[style^="background-color"] {
+    background-image: url(../addons/deam_food/static/images/topbar_white.png);
+}
+.card_preview_area .card_body {
+    margin: 64px 10px 10px;
+}
+.card_preview_area .msg_card_cell {
+	background-color: #fff;
+	*zoom: 1
+}
+
+.card_preview_area .logo_area {
+	position: relative;
+	margin-bottom: 7px;
+	line-height: 42px;
+	color: #8d8d8d;
+	margin-top: -40px
+}
+
+.card_preview_area .logo {
+	display: block;
+	width: 38px;
+	height: 38px;
+	padding-top: 0;
+	margin: 0 auto;
+	border-radius: 22px;
+	-moz-border-radius: 22px;
+	-webkit-border-radius: 22px;
+	float: none;
+	border: 1px solid #e7e7eb;
+	background-color: #fff
+}
+
+.card_preview_area .logo img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: inherit;
+	-moz-border-radius: inherit;
+	-webkit-border-radius: inherit
+}
+
+.card_preview_area .logo img[src=""] {
+	display: none
+}
+
+.card_preview_area .logo img[src="http"] {
+	display: block
+}
+
+.card_preview_area .logo img[src="//"] {
+	display: block
+}
+
+.card_preview_area .msg_area {
+	*overflow: hidden
+}
+.msg_card_section {
+	position: relative
+}
+
+.msg_card_section.shop {
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px dashed #e7e7eb;
+	position: relative;
+	background-color: #fff;
+	border-radius: 5px 5px 0 0;
+	-moz-border-radius: 5px 5px 0 0;
+	-webkit-border-radius: 5px 5px 0 0
+}
+.msg_card_section.shop .shop_panel {
+	padding: 21px 12px 12px;
+	*height: 137px;
+	min-height: 137px;
+	height: auto;
+	text-align: center
+}
+.msg_card_section.shop .tick_msg {
+	margin-bottom: 6px
+}
+.msg_card_section.shop .tick_msg .card_name {
+	font-weight: normal;
+	font-size: 28px;
+	word-break: break-word;
+	word-wrap: break-word
+}
+.msg_card_section.shop .time {
+	text-align: center
+}
+.card_preview_area .btn {
+    display: inline-block;
+    overflow: visible;
+    padding: 0 22px;
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    font-size: 14px;
+    border-width: 1px;
+    border-style: solid;
+    cursor: pointer;
+}
+.btn_use_card {
+	border-width: 0;
+	background-color: #f4f5f9
+}
+.btn_use_card[style^="background"] {
+	color: #fff
+}
+.card_usage {
+	text-align: left;
+	padding: 0 10px 1em;
+	background-color: #fff
+}
+.card_usage li {
+	overflow: hidden;
+	padding-left: 5em;
+	clear: both;
+	color: #8d8d8d
+}
+.card_usage .usage_label {
+	float: left;
+	margin-left: -5em;
+	color: #222
+}
+</style>
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<input type="hidden" name="id" value="{$coupon['id']}">
+<input type="hidden" name="card_type" value="CASH">
+<ul class="we7-page-tab" id="myTab" style="margin-top: 0;margin-top: -20px">
+    <li class="active" ><a href="#tab_basic">优惠券详情</a></li>
+</ul>
+<div class="tab-content">
+	<div class="tab-pane active" id="tab_basic" style="display: flex;">
+		<div class="card_preview_area js_color_bg_preview affix-top" style="height: 1%;">
+			<div class="card_body" id="js_preview_area">
+				<div class="js_preview msg_card_section shop disabled">
+					<div class="shop_panel">
+						<div class="logo_area">
+							<span class="logo">
+							<img id="js_logo_url_preview" src="{media $coupon_info['logo_url']}">
+							</span>
+							<p id="js_brand_name_preview">{$coupon_info['brand_name']}</p>
+						</div>
+						<div class="msg_area">
+							<div class="tick_msg">
+								<p id="js_title_preview" class="card_name">{$coupon_info['title']}</p>
+								<span class="btn btn_use_card js_use_card_button" id="js_color_preview" style="background: {$coupon_colors[$coupon_info['color']]}">使用</span>
+							</div>
+
+							<div class="js_card_pay_money_tips" style="display:none;">
+							</div>
+						</div>
+					</div>
+					<div class="card_usage">
+						<ul>
+						<li><span class="usage_label" id="js_use_condition_preview_p" style="display: none;">使用条件：</span><span id="js_use_condition_preview"></span></li>
+						<li><span class="usage_label">可用时间：</span><span id="js_use_time_preview"></span><span id="js_time_limit_preview">{$coupon_info['date_info']}</span></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="coupon-form" style="-webkit-box-flex: 1;-webkit-flex: 1;-ms-flex: 1;flex: 1;padding-left: 30px;">
+			<div class="form-group marbot0">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 卡券id</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">{$coupon_info['card_id']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 优惠券标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">{$coupon_info['title']}</p>
+					<div class="help-block"></div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 商户名称</label>
+				<div class="col-sm-9 col-xs-12">
+				<p class="form-control-static">{$coupon_info['brand_name']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 最低消费</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">满 {php echo $coupon_info['least_cost']/100} 元可用</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 减免金额</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">减 {php echo $coupon_info['reduce_cost']/100} 元</p>
+				</div>
+			</div>
+			<div class="form-group marbot0">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 分享设置</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">
+						{if $coupon_info['can_share']}用户可以分享领券链接{else}用户不能分享领券链接{/if}
+					</p>
+				</div>
+			</div>
+			<div class="form-group marbot0">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 转赠设置</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">
+						{if $coupon_info['can_give_friend']}用户领券后可转赠其他好友{else}用户领券后不能转赠其他好友{/if}
+					</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label" style="padding-top:15px"> 有效期</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">{$coupon_info['date_info']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 库存</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">{$coupon_info['quantity']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 领券限制</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">每个用户限领{$coupon_info['get_limit']}张</p>
+				</div>
+			</div>
+			<div class="form-group marbot0">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 销券条码</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">
+						{if $coupon_info['code_type'] == 1}
+						卡号
+						{elseif $coupon_info['code_type'] == 2}
+						二维码
+						{else}
+						条形码
+						{/if}
+					</p>
+				</div>
+			</div>
+			<div class="form-group marbot0">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 操作提示</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">
+						{$coupon_info['notice']}
+					</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠详情</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">
+						{$coupon_info['extra']['default_detail']}
+					</p>
+				</div>
+			</div>
+			<div class="form-group marbot0">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 使用须知</label>
+				<div class="col-sm-9 col-xs-12">
+					<p class="form-control-static">
+						{$coupon_info['description']}
+					</p>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<span class="btn btn-primary col-lg-1" onclick="javascript:history.go(-1)">返回</span>
+			</div>
+		</div>
+	</div>
+</div>
+</form>
+<script type="text/javascript">
+$(function () {
+    window.optionchanged = false;
+    $('#myTab a').click(function (e) {
+        e.preventDefault();//阻止a链接的跳转行为
+        $(this).tab('show');//显示当前选中的链接及关联的content
+    })
+});
+</script>
+{elseif $operation == 'settings'}
+<style type="text/css">
+.material-content .material-body{
+	height: auto;
+	border-bottom: 0;
+}
+.material-body .col-sm-2{
+	padding: 10px;
+    overflow: hidden;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+.material-body .col-sm-2 .item {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    border: 1px solid #e7e7eb;
+}
+.material-body .col-sm-2 .item:before, .material-body .col-sm-2 .item:before {
+    content: "";
+    display: inline-block;
+    padding-bottom: 100%;
+    width: .1px;
+    vertical-align: middle;
+}
+.material-body .col-sm-2 .item .icon, .material-body .col-sm-2 .item .icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    vertical-align: middle;
+}
+.material-body .col-sm-2 .item .name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    line-height: 34px;
+    background: rgba(0,0,0,.5);
+    color: #fff;
+    padding: 0 20px;
+    text-align: left;
+    z-index: 2;
+}
+</style>
+<div class="alert bg-light-gray">
+	<p><i class="wi wi-info-sign color-default"></i>当前登录账号必须拥有公众号的主管理员权限</p>
+	<p><i class="wi wi-info-sign color-default"></i>公众号必须具有卡券功能</p>
+	<p><i class="wi wi-info-sign color-default"></i>公众号和小程序必须绑定到同一个<a class="text-primary" href="https://open.weixin.qq.com" target="_blank">微信开放平台</a>上</p>
+</div>
+	<p style="margin-left: 30px">当前已选公众号：{if empty($settings['coupon_uniacid'])}暂未设置公众号{else}{$account['name']}{/if}</p>
+	<div style="margin-left: 30px;margin-top: 10px;">
+		{if empty($settings['coupon_uniacid'])}
+		<button type="button" class="layui-btn layui-btn-sm layui-btn-normal chooseAccount">选择公众号</button>
+		{else}
+		<button type="button" class="layui-btn layui-btn-sm layui-btn-normal chooseAccount">重新选择</button>
+		{/if}
+	</div>
+<script>
+	layui.use('layer', function(){
+		var layer = layui.layer;
+		$('.chooseAccount').click(function () {
+			layer.prompt({title: "请输入公众号uniacid",value: "{$settings['coupon_uniacid']}"},function(value, index, elem){
+				$.ajax({
+					"url": "{php echo $this->createWebUrl('coupon', array('op' => 'get_uniacid_info'))}",
+					dataType: "json",
+					data: {
+						uniacid: value
+					},
+					cache: false,
+					success: function(data){
+						if (data.status == '0') {
+
+							layer.msg(data.result.message);
+						} else {
+							layer.confirm('确认选择公众号"'+ data.result.account.name +'"', {icon: 3, title:'提示'}, function(index2){
+								//do something
+								$.ajax({
+									"url": "{php echo $this->createWebUrl('coupon', array('op' => 'post_coupon_uniacid'))}",
+									dataType: "json",
+									data: {
+										uniacid: value
+									},
+									cache: false,
+									success: function(data){
+										if (data.status == '0') {
+											layer.msg(data.result.message);
+										} else {
+											layer.msg(data.result.message, {
+												icon: 1,
+												time: 1000
+											}, function(){
+												window.location.reload();
+											});
+											layer.close(index);
+										}
+									}
+								});
+								layer.close(index2);
+							});
+						}
+					}
+				});
+
+			});
+		});
+	});
+</script>
+{elseif $operation == 'log'}
+<div class="we7-page-title">
+	{$coupon_info['title']}
+	<div class="pull-right">
+		<a href="{php echo $this->createWebUrl('coupon',array('op'=>'display'))}" class="btn btn-primary">返回优惠券列表</a>
+	</div>
+</div>
+{if empty($list)}
+<div class="panel we7-panel panel-default">
+    <div class="panel-body" style="text-align: center;padding:30px;">
+       	暂无领取记录
+    </div>
+</div>
+{else}
+<div class="table-responsive panel-body">
+	<table class="table we7-table table-hover">
+		<thead class="navbar-inner">
+			<tr>
+				<th width="150">优惠券名称</th>
+				<th width="90">领取方式</th>
+				<th width="210">领取人</th>
+				<th width="150">code码</th>
+				<th width="60">状态</th>
+				<th width="150">领取时间</th>
+				<th style="width:150px; text-align:center;">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+		{loop $list $k $item}
+		<tr>
+			<td>{$coupon_info['title']}</td>
+			<td>
+				{if $item['givebyfriend'] == 1}
+				<span class="label label-danger">朋友赠送</span>
+				{else}
+				<span class="label label-success">{$item['remark']}</span>
+				{/if}
+			</td>
+			<td>{$item['unionid']}</td>
+			<td>{$item['code']}</td>
+			<td>
+			{if TIMESTAMP > $item['endtime']}
+				<span class="label label-warning">已失效</span>
+			{else}
+				{if $item['status'] == 1}
+				<span class="label label-success">未使用</span>
+				{elseif $item['status'] == 2}
+				<span class="label label-warning">已失效</span>
+				{elseif $item['status'] == 3}
+				<span class="label label-danger">已核销</span>
+				{elseif $item['status'] == 4}
+				<span class="label label-default">已删除</span>
+				{/if}
+			{/if}
+			</td>
+			<td>{php echo date('Y-m-d H:i:s', $item['addtime']);}</td>
+
+			<td style="text-align:center;">
+				{if !empty($item['code'])}
+					{if $item['status'] == 1 && $item['starttime'] <= TIMESTAMP && $item['endtime'] >= TIMESTAMP }
+					<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWebUrl('coupon', array('op' => 'coupon_consume', 'id' => $item['id'], 'source' => $row['source']))}')" class="btn btn-default btn-sm" title="核销优惠券">核销</a>
+					{/if}
+					<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWebUrl('coupon', array('op' => 'log_delete', 'id' => $item['id'], 'source' => $row['source']))}')" class="btn btn-default btn-sm" title="删除兑换记录">删除</a>
+				{/if}
+			</td>
+		</tr>
+		{/loop}
+		</tbody>
+	</table>
+	{$pager}
+</div>
+{/if}
+{elseif $operation == 'recharge'}
+<form id="dataform" action="" method="post" class="form-horizontal form-validate">
+      <div class="form-group">
+
+        <div class="col-sm-12">
+			<div class='recharge-items'>
+
+				 {loop $recharges $item}
+
+			<div class="input-group recharge-item fixmore-input-group" style="margin-top:5px">
+				<span class="input-group-addon">满</span>
+				<input type="text" class="form-control" name='enough[]' value="{$item['enough']}" />
+				<span class="input-group-addon">赠送</span>
+				<input type="text" class="form-control"  name='give[]' value="{$item['give']}" />
+				<span class="input-group-addon">元</span>
+				<div class='input-group-btn'>
+				<button class='btn btn-danger' type='button' onclick="removeRechargeItem(this)"><i class='fa fa-remove'></i></button>
+				</div>
+
+			</div>
+			 {/loop}
+			 </div>
+
+		   <div style="margin-top:5px">
+		   <button type='button' class="btn btn-default" onclick='addRechargeItem()' style="margin-bottom:5px"><i class='fa fa-plus'></i> 增加优惠项</button>
+		   </div>
+			<span class="help-block">两项都填写才能生效，赠送的余额可以固定数或比例(带%)号</span>
+			<span class="help-block">例如：充值满100，赠送10</span>
+			<span class="help-block">例如：充值满200，赠送10%，实际赠送20(200*10%)</span>
+           </div>
+       </div>
+    <div class="form-group"></div>
+   <div class="form-group">
+
+		   <div class="col-sm-9 col-xs-12">
+
+				<input type="hidden" name="token" value="{$_W['token']}">
+				<input type="submit" name="submit" value="保存设置" class="btn btn-primary"/>
+
+		   </div>
+	</div>
+</form>
+<script language='javascript'>
+	
+	function addRechargeItem(){
+		var html= '<div class="input-group recharge-item fixmore-input-group"  style="margin-top:5px">';
+           html+='<span class="input-group-addon">满</span>';
+		 html+='<input type="text" class="form-control" name="enough[]"  />';
+							html+='<span class="input-group-addon">赠送</span>';
+							html+='<input type="text" class="form-control"  name="give[]"  />';
+							html+='<span class="input-group-addon">元</span>';
+							html+='<div class="input-group-btn"><button type="button" class="btn btn-danger" onclick="removeRechargeItem(this)"><i class="fa fa-remove"></i></button></div>';
+						html+='</div>';
+						$('.recharge-items').append(html);
+	}
+	function removeRechargeItem(obj){
+		$(obj).closest('.recharge-item').remove();
+	}
+	
+   
+</script>
+{elseif $operation == 'credit1'}
+<form id="setform" action="" method="post" class="form-horizontal form-validate">
+	<div class="tabs-container">
+		<ul class="we7-page-tab" id="myTab" style="margin-top: -15px;">
+			<li class="active"><a href="#tab_basic">买单送积分</a></li>
+			<li><a href="#tab_money">充值送积分</a></li>
+		</ul>
+		<div class="tab-content ">
+			<div class="tab-pane active" id="tab_basic">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">买单送积分</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class='recharge-items'>
+							{loop $enough1 $it}
+							<div class="input-group recharge-item fixmore-input-group" style="margin-top:5px">
+								<span class="input-group-addon">买单</span>
+								<input type="text" class="form-control" name='enough1_1[]' value='{$it['enough1_1']}' />
+								<span class="input-group-addon">元至</span>
+								<input type="text" class="form-control" name='enough1_2[]' value='{$it['enough1_2']}' />
+								<span class="input-group-addon">元&nbsp;&nbsp;|&nbsp;&nbsp;每消费1元赠送</span>
+								<input type="text" class="form-control"  name='give1[]' value='{$it['give1']}' />
+								<span class="input-group-addon">积分</span>
+								<div class='input-group-btn'>
+									<button class='btn btn-danger' type='button' onclick="$(this).parents('.recharge-item').remove()"><i class='fa fa-remove'></i></button>
+								</div>
+							</div>
+							{/loop}
+						</div>
+						<div style="margin-top:5px">
+							<button type='button' class="btn btn-default" onclick='addConsumeItem(this,"买单","消费","enough1_1","enough1_2","give1")' style="margin-bottom:5px"><i class='fa fa-plus'></i> 增加优惠项</button>
+						</div>
+						<span class="help-block">两项都填写才能生效 例如 填写 满10元 赠送比例为1比1积分  则赠送10*1=10积分<span style="color: red">(赠送的积分请填写整数)</span></span>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">适用场景</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="checkbox-inline"><input type="checkbox" name="paytype[1]" value="1" {if !empty($credit1['paytype'][1])}checked="true"{/if}   /> 余额支付</label>
+						<label class="checkbox-inline"><input type="checkbox" name="paytype[21]" value="1" {if !empty($credit1['paytype'][21])}checked="true"{/if}   /> 微信支付</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="tab-pane" id="tab_money">
+				<div class="form-group">
+				    <label class="col-xs-12 col-sm-3 col-md-2 control-label">充值送积分</label>
+				    <div class="col-sm-9">
+				        <div class='recharge-items'>
+				            {loop $enough2 $it}
+				            <div class="input-group recharge-item fixmore-input-group" style="margin-top:5px">
+				                <span class="input-group-addon">充值</span>
+				                <input type="text" class="form-control" name='enough2_1[]' value='{$it['enough2_1']}' />
+				                <span class="input-group-addon">元至</span>
+				                <input type="text" class="form-control" name='enough2_2[]' value='{$it['enough2_2']}' />
+				                <span class="input-group-addon">元&nbsp;&nbsp;|&nbsp;&nbsp;每充值1元赠送</span>
+				                <input type="text" class="form-control"  name='give2[]' value='{$it['give2']}' />
+				                <span class="input-group-addon">积分</span>
+				                <div class='input-group-btn'>
+				                    <button class='btn btn-danger' type='button' onclick="$(this).parents('.recharge-item').remove()"><i class='fa fa-remove'></i></button>
+				                </div>
+				            </div>
+				            {/loop}
+				        </div>
+				        <div style="margin-top:5px">
+				            <button type='button' class="btn btn-default" onclick='addConsumeItem(this,"充值","充值","enough2_1","enough2_2","give2")' style="margin-bottom:5px"><i class='fa fa-plus'></i> 增加优惠项</button>
+				        </div>
+				        <span class="help-block">两项都填写才能生效 例如 填写 满10元 赠送比例为1比1积分  则赠送10*1=10积分</span>
+				    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-lg control-label"></label>
+		<div class="col-sm-9 col-xs-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary" />
+			<input type="hidden" name="token" value="{$_W['token']}">
+		</div>
+    </div>
+</form>
+<script type="text/javascript">
+$(function () {
+    window.optionchanged = false;
+    $('#myTab a').click(function (e) {
+        e.preventDefault();//阻止a链接的跳转行为
+        $(this).tab('show');//显示当前选中的链接及关联的content
+    })
+    
+});
+function addConsumeItem(obj,name,name2,enough1,enough2,give){
+	var $this = $(obj).parent().prev();
+	var html= '<div class="input-group recharge-item fixmore-input-group"  style="margin-top:5px">';
+	html+='<span class="input-group-addon">'+name+'</span>';
+	html+='<input type="text" class="form-control" name="'+enough1+'[]"  />';
+	html+='<span class="input-group-addon">元至</span>';
+	html+='<input type="text" class="form-control" name="'+enough2+'[]"  />';
+	html+='<span class="input-group-addon">元&nbsp;&nbsp;|&nbsp;&nbsp;每'+name2+'1元赠送</span>';
+	html+='<input type="text" class="form-control"  name="'+give+'[]"  />';
+	html+='<span class="input-group-addon">积分</span>';
+	html+='<div class="input-group-btn"><button type="button" class="btn btn-danger" onclick="$(this).parents(\'.recharge-item\').remove()"><i class="fa fa-remove"></i></button></div>';
+	html+='</div>';
+	$this.append(html);
+}
+function removeConsumeItem(obj){
+	$(obj).closest('.recharge-item').remove();
+}
+</script>
+{/if}
+</div>
+</div>
+{template 'system/common/footer'}

@@ -1,0 +1,114 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">桌号管理</div>
+    <ul>
+        <li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('desk', array('op' => 'display','store_id'=>$store_id))}">桌号列表</a></li>
+	    <li {if $operation == 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('desk', array('op' => 'post','store_id'=>$store_id))}">添加桌号</a></li>
+	    {if $operation == 'post' && !empty($id)}<li class="active"><a href="{php echo $this->createWebUrl('desk', array('op' => 'post','id'=>$id,'store_id'=>$store_id))}">编辑桌号</a></li>{/if}
+        
+    </ul>
+</div>
+<div class="dm-container">
+<div class="dm-content">
+<div class="clearfix">
+<div class="we7-page-title">
+	{$storeInfo['name']}
+	<div class="pull-right">
+		<a href="{php echo $this->createWebUrl('store')}" class="btn btn-primary">返回门店列表</a>
+	</div>
+</div>
+{if $operation == 'display'}
+<div class="table-responsive">
+	<table class="table we7-table table-hover">
+		<thead>
+		<tr>
+			<!-- <th style="width:40px;">
+				<input type="checkbox" name="checkall" value="" id="checkall" onclick="var ck = this.checked; $(':checkbox').each(function(){this.checked = ck});"/>
+			</th> -->
+			<th style="width:40px;">ID</th>
+			<th style="width:200px;">桌号名称</th>
+			<th style="width:180px;" class="text-center">小程序码</th>
+			<th class="text-center" style="width:200px;">操作</th>
+		</tr>
+		</thead>
+		<tbody>
+		{if empty($list)}
+		<tr><td colspan="4" style="text-align:center">还未添加桌号！<br>自取餐厅无需添加桌号</td></tr>
+		{else}
+		{loop $list $item}
+		<tr>
+			<!-- <td><input type="checkbox" name="items[]" value="{$item['id']}" class="items" /></td> -->
+			<td>{$item['id']}</td>
+			<td>{$item['name']}</td>
+			<td class="text-center">{if !empty($item['wxacode'])}<i class="fa fa-qrcode" style="color: #3e3e3e" data-toggle="popover" data-trigger="click" data-placement="left" data-html="true" data-content="<img style='width:200px;height:200px;' src='{php echo $_W['siteroot'].'addons/deam_food/data/wxacode/'.$item['wxacode']}'><p style='text-align:center;color:#999'>发布后小程序码才能生效</p>"></i>{else}未生成{/if}</td>
+			<td class="text-center">
+				<a href="{php echo $this->createWebUrl('desk', array('id' => $item['id'], 'op' => 'post','store_id'=>$store_id))}" class="btn showtitle btn-default btn-sm" title="编辑桌号"><i class="fa fa-edit"></i></a>
+                <a href="{php echo $this->createWebUrl('desk', array('id' => $item['id'], 'op' => 'delete','store_id'=>$store_id))}" class="btn showtitle btn-default btn-sm" title="删除" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-trash"></i></a>
+			</td>
+		</tr>
+		{/loop}
+		{/if}
+		</tbody>
+	</table>
+    {$pager}
+</div>
+<script type="text/javascript">
+	require(['bootstrap'], function ($) {
+        $('.showimg').hover(function () {
+            $(this).popover('show');
+        }, function () {
+            $(this).popover('hide');
+        });
+        $('.showtitle').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+        $('.showpop').on('shown.bs.popover', function () {
+            $('.showpop').not(this).popover('hide');
+        });
+        $('[data-toggle="popover"]').popover("destroy").popover({
+            container: $(document.body)
+        });
+    });
+</script>
+{elseif $operation == 'post'}
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<input type="hidden" name="id" value="{$desk['id']}">
+<input type="hidden" name="store_id" value="{$store_id}">
+	<div class="deskbox">
+	<div id="deskBox">
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">桌号名称</label>
+		<div class="col-md-9">
+			<input type="text" name="{if empty($desk['id'])}name[]{else}name{/if}" class="form-control" value="{$desk['name']}" />
+			<div class="help-block">如：一号桌</div>
+		</div>
+	</div>
+	</div>
+	</div>
+	{if empty($desk['id'])}
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"></label>
+		<div class="col-md-9">
+			<a href="javascript:;" id="addDeskBtn" class="text-primary"><i class="fa fa-plus"></i>添加桌号</a>
+		</div>
+	</div>
+	{/if}
+	<div class="form-group col-sm-12">
+        <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+        <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+</form>
+<script type="text/javascript">
+$(function(){
+	$("#addDeskBtn").click(function(){
+		$(".deskbox").append($("#deskBox").html());
+	});
+})
+</script>
+{/if}
+</div>
+</div>
+</div>
+{template 'system/common/footer'}

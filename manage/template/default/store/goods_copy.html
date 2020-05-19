@@ -1,0 +1,749 @@
+{mtemplate '_header'}
+<div class="dm-subnav">
+	<div class="subnav-title">商品管理</div>
+	<ul>
+		<li class="{if $operation == 'display'}active{/if}"><a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'display'))}">商品列表</a></li>
+		{if in_array('store_goods_add',$user_permissionArr)}
+		<li class="{if $operation == 'post' && empty($id)}active{/if}"><a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'post'))}">添加商品</a></li>
+		{/if}
+		{if $operation == 'post' && !empty($id)}<li class="active"><a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'post','id'=>$id))}">编辑商品</a></li>{/if}
+		{if in_array('store_class',$user_permissionArr)}
+		<li class="{if $operation == 'class' && $method == 'list' && empty($id)}active{/if}"><a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'class','method'=>'list'))}">商品分类</a></li>
+		{/if}
+		{if in_array('store_class_add',$user_permissionArr)}
+		<li class="{if $operation == 'class' && $method == 'post' && empty($id)}active{/if}"><a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'class','method'=>'post'))}">添加分类</a></li>
+		{/if}
+		{if $operation == 'class' && $method == 'post' && !empty($id)}<li class="active"><a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'class','method'=>'post','id'=>$id))}">编辑商品</a></li>{/if}
+
+	</ul>
+</div>
+<div class="dm-container">
+<div class="dm-content">
+{if $operation == 'display'}
+<style type="text/css">
+.page-toolbar {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    height: 35px;
+    line-height: 1;
+    vertical-align: middle;
+    margin-bottom: 15px;
+}
+.input-group-select {
+    float: right;
+}
+</style>
+<form action="./index.php" method="get" class="form-horizontal" role="form">
+    <input type="hidden" name="c" value="site">
+    <input type="hidden" name="i" value="{$_W['uniacid']}">
+    <input type="hidden" name="a" value="entry">
+    <input type="hidden" name="op" value="display">
+    <input type="hidden" name="r" value="goods">
+    <input type="hidden" name="ac" value="index">
+    <input type="hidden" name="do" value="manage">
+    <input type="hidden" name="m" value="deam_food">
+<div class="page-toolbar">
+	<div class="col-sm-4">
+		<div class="input-group-btn">
+            <button class="btn btn-default status0" type="button" ><i class="fa fa-circle-o"></i> 下架</button>
+            <button class="btn btn-default status1" type="button" ><i class="fa fa-circle"></i> 上架</button>
+        </div>
+	</div>
+    <div class="input-group">
+    <input type="text" style="width: 200px;float: right;" class="form-control" name="keyword" value="{$keyword}" placeholder="商品名称">
+    <span class="input-group-select">
+        <select name="classid" class="form-control" style="width:110px;padding:0 5px;">
+            <option value="0">商品分类</option>
+            {loop $class $item}
+            <option value="{$item['id']}" {if $classid == $item['id']} selected="" {/if}>{$item['classname']}</option>
+            {/loop}
+        </select>
+    </span>
+    <span class="input-group-btn">
+        <button type="submit" class="btn btn-primary">搜索</button>
+    </span>
+    </div>
+</div>
+</form>
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<div style="display: none">
+<input type="hidden" name="token" value="{$_W['token']}" />
+<input type="submit" id="status0" name="status0" value="下架">
+<input type="submit" id="status1" name="status1" value="上架">
+</div>
+<div class="table-responsive">
+	<table class="table we7-table table-hover">
+		<thead>
+		<tr>
+			<th style="width:30px;">
+				<input type="checkbox" name="checkall" value="" id="checkall" onclick="var ck = this.checked; $(':checkbox').each(function(){this.checked = ck});"/>
+			</th>
+			<th style="width:80px;">
+				ID
+			</th>
+			<th style="width:200px;">商品名称</th>
+			<th style="width:180px;">所属分类</th>
+			<th class="text-center" style="width:100px;">商品价格</th>
+			<!-- <th style="width:80px;">库存</th> -->
+			<th class="text-center" style="width:80px;">销量</th>
+			<th class="text-center" style="width:80px;">状态</th>
+			<th class="text-center" style="width:200px;">操作</th>
+		</tr>
+		</thead>
+		<tbody style="background: #fff">
+		{if empty($list)}
+		<tr><td colspan="6" style="text-align:center">还未添加商品！</td></tr>
+		{else}
+		{loop $list $item}
+		<tr>
+			<td><input type="checkbox" name="items[]" value="{$item['id']}" class="items" /></td>
+			<td style="width:40px;">{$item['id']}</td>
+			<td style="width:200px;">{$item['name']}</td>
+			<td style="width:180px;">{$class[$item['class_id']]['classname']}</td>
+			<td class="text-center" style="width:100px;">{$item['price']}</td>
+			<td style="width:80px;" class="text-center">{$item['realsales']}</td>
+			<td style="width:80px;" class="text-center">{if empty($item['status'])}<span class="label label-danger">下架</span>{elseif $item['status']=='1'}<span class="label label-success">在售</span>{/if}</td>
+			<td style="width:200px;" class="text-center">
+			{if in_array('store_goods_edit',$user_permissionArr)}
+				<a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'post','id'=>$item['id']))}" class="btn showtitle btn-default btn-sm" title="编辑商品"><i class="fa fa-edit"></i></a>
+			{/if}
+			{if in_array('store_goods_delete',$user_permissionArr)}
+                <a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'delete','id'=>$item['id']))}" class="btn showtitle btn-default btn-sm" title="删除" onclick="return confirm('此操作不可恢复，确认删除？\r\n如果此商品存在购买记录，订单会无法关联到商品');return false;"><i class="fa fa-trash"></i></a>
+            {/if}
+			</td>
+		</tr>
+		{/loop}
+		{/if}
+		</tbody>
+	</table>
+    {$pager}
+</div>
+</form>
+<script type="text/javascript">
+require(['bootstrap'], function ($) {
+    $('.showimg').hover(function () {
+        $(this).popover('show');
+    }, function () {
+        $(this).popover('hide');
+    });
+    $('.showtitle').hover(function () {
+        $(this).tooltip('show');
+    }, function () {
+        $(this).tooltip('hide');
+    });
+});
+$('.status0').on("click",function(){
+	$('#status0').trigger("click");
+});
+$('.status1').on("click",function(){
+	$('#status1').trigger("click");
+});
+</script>
+{elseif $operation == 'post'}
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<input type="hidden" name="id" value="{$goods['id']}">
+<input type="hidden" name="store_id" value="{$store_id}">
+	<div class="panel we7-panel panel-default">
+
+		<ul class="we7-page-tab" id="myTab" style="margin-left: 0;margin-right: 0">
+	        <li class="active" ><a href="#tab_basic">基本</a></li>
+	        <li><a href="#tab_option">规格</a></li>
+	    </ul>
+
+	    <div class="tab-content">
+	    	<div class="tab-pane active" id="tab_basic">
+	    		<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">排序</label>
+					<div class="col-md-9">
+						<input type="text" name="displayorder" class="form-control" value="{$goods['displayorder']}" />
+						<div class="help-block">数字越大，排名越靠前,如果为空，默认排序方式为创建时间</div>
+					</div>
+				</div>
+	    		<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商品名称</label>
+					<div class="col-md-7">
+						<input type="text" name="name" class="form-control" value="{$goods['name']}" />
+					</div>
+					<div class="col-md-2" style="padding-left: 5px;">
+						<input type="text" name="unit" class="form-control" value="{$goods['unit']}" placeholder="单位，如：个/份" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">简短介绍</label>
+					<div class="col-md-9">
+						<textarea type="text" name="intro" class="form-control" rows="3">{$goods['intro']}</textarea>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">所属分类</label>
+					<div class="col-md-9">
+						<select name="class_id" class="form-control">
+							<option value="0">请选择分类</option>
+							{loop $class $classItem}
+							<option value="{$classItem['id']}" {if $goods['class_id'] == $classItem['id']} selected=""{/if}>{$classItem['classname']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">价格</label>
+					<div class="col-md-9">
+						<div class="input-group">
+				            <input type="text" name="price" class="form-control valid" value="{$goods['price']}">
+				            <span class="input-group-addon">元</span>
+				        </div>
+					</div>
+				</div>
+				<div class="form-group">
+				    <label class="col-sm-2 control-label">外卖是否需要打包盒</label>
+				    <div class="col-sm-9 col-xs-12">
+				        <label class="radio-inline"><input type="radio" name="is_pbox" value="0" {if empty($goods['is_pbox'])} checked="true"{/if}> 不需要</label>
+				        <label class="radio-inline"><input type="radio" name="is_pbox" value="1" {if $goods['is_pbox'] == '1'} checked="true"{/if}> 需要</label>
+				        <span class="help-block">如果打包盒免费，请直接选择不需要</span>
+				    </div>
+				</div>
+				<div class="form-group is-pbox" {if empty($goods['is_pbox'])} style="display: none" {/if}>
+				    <label class="col-sm-2 control-label">打包盒价格</label>
+				    <div class="col-sm-9 col-xs-12">
+				    	<div class="input-group">
+				            <input type="text" name="pbox_price" class="form-control" value="{$goods['pbox_price']}">
+				            <span class="input-group-addon">元/份</span>
+				        </div>
+				        <span class="help-block"></span>
+				    </div>
+				</div>
+				<div class="form-group">
+			        <label class="col-sm-2 control-label">商品图片</label>
+			        <div class="col-sm-9 col-xs-12">
+						{php echo dm_tpl_form_field_image('img',$goods['img']);}
+						<span class="help-block">建议上传正方形图片</span>
+			        </div>
+			    </div>
+			    <div class="form-group">
+				    <label class="col-sm-2 control-label">上架</label>
+				    <div class="col-sm-9 col-xs-12">
+				        <label class="radio-inline"><input type="radio" name="status" value="0" {if empty($goods['status'])} checked="true"{/if}> 否</label>
+				        <label class="radio-inline"><input type="radio" name="status" value="1" {if $goods['status'] == '1'} checked="true"{/if}> 上架</label>
+				        <span class="help-block"></span>
+				    </div>
+				</div>
+	    	</div>
+	    	<div class="tab-pane" id="tab_option">
+	    		<div class="form-group">
+				    <div class="col-sm-11" style="padding-left:30px;">
+					    <label class="checkbox-inline">
+							<input type="checkbox" id="hasoption" value="1" name="hasoption" {if $goods['hasoption'] == '1'} checked="" {/if}>启用商品规格
+						</label>
+						<span class="help-block">启用商品规格后，商品的价格以商品规格为准</span>
+				    </div>
+				</div>
+				<div class="form-group" style="padding-left: 15px;">
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline"><input type="radio" name="old_option" value="0" {if ($goods['hasoption'] == '1' && $goods['old_option'] == '0') || empty($goods)} checked=""{/if}> 新规格</label>
+						<label class="radio-inline"><input type="radio" name="old_option" value="1" {if ($goods['hasoption'] == '1' && $goods['old_option'] == '1')} checked=""{/if}> 老规格</label>
+						<span class="help-block"></span>
+					</div>
+				</div>
+				<div id="new_option" style="padding:0 15px;display: none;{if $goods['hasoption'] == '1' && $goods['old_option'] == '0'}display:block{/if}">
+					<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+						<ul class="layui-tab-title">
+							<li class="layui-this">商品属性（可设置多个）</li>
+							<li>商品规格（只可设置一个）</li>
+						</ul>
+						<div class="layui-tab-content">
+							<div class="layui-tab-item layui-show">
+								<div class="attr-box">
+									{loop $goods['goods_attr'] $goods_attr_index $goods_attr}
+									{php $goods_attr['id'] = $goods_attr_index}
+									{template 'system/store/tpl/attr'}
+									{/loop}
+								</div>
+								<table class="table">
+									<tr>
+										<td>
+											<h4><a href="javascript:;" class='btn btn-primary' id='add-attr' style="margin-top:10px;margin-bottom:10px;" title="添加商品属性"><i class='fa fa-plus'></i> 添加商品属性</a></h4>
+										</td>
+									</tr>
+								</table>
+							</div>
+							<div class="layui-tab-item">
+								<div class="new-specs-box">
+									{if !empty($newSpecsArr)}
+									{template 'system/store/tpl/new_specs'}
+									{/if}
+								</div>
+								<table class="table" id="new-specs-btn" {if !empty($newSpecsArr)} style="display: none" {/if}>
+								<tr>
+									<td>
+										<h4><a href="javascript:;" class='btn btn-primary' id='add-new-specs' style="margin-top:10px;margin-bottom:10px;" title="添加商品规格"><i class='fa fa-plus'></i> 添加商品规格</a></h4>
+									</td>
+								</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+
+
+				</div>
+				<div id='tboption' style="padding:0 15px;display: none;{if $goods['hasoption'] == '1' && $goods['old_option'] == '1'}display:block{/if}" >
+					<div class="alert alert-info">
+						1. 拖动规格可调整规格显示顺序, 更改规格及规格项后请点击下方的【刷新规格项目表】来更新数据。<br/>
+						2. 每一种规格代表不同型号，例如口味为一种规格，大小为一种规格，如果设置多规格，用户必须每一种规格都选择一个规格项，才能添加到购物车。
+					</div>
+					<div id='specs'>
+						{loop $allspecs $spec}
+						{template 'system/store/tpl/spec'}
+						{/loop}
+					</div>
+					<table class="table">
+						<tr>
+							<td>
+								<h4><a href="javascript:;" class='btn btn-primary' id='add-spec' onclick="addSpec()" style="margin-top:10px;margin-bottom:10px;" title="添加规格"><i class='fa fa-plus'></i> 添加规格</a>
+									<a href="javascript:;" onclick="refreshOptions();" title="刷新规格项目表" class="btn btn-primary"><i class="fa fa-refresh"></i> 刷新规格项目表</a></h4>
+							</td>
+						</tr>
+					</table>
+					<div class="alert alert-info wholesalewarning"    style="display: none">
+						1. 批发商品设置多规格时,无需设置价格参数(现价,原价,成本价,预售价),当商品保存时会自动获取第一级批发价作为不同规格商品的统一价格!
+					</div>
+					<div id="options" style="padding:0;">{$html}</div>
+				</div>
+	    	</div>
+	    </div>
+	</div>
+
+	<div class="form-group col-sm-12">
+		<input type="hidden" name="optionArray" value=''>
+        <input type="submit" name="submit" value="保存" class="btn btn-primary col-lg-1" />
+        <input style="margin-left: 20px;" type="submit" name="submitadd" value="保存并新增" class="btn btn-info" />
+        <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+</form>
+<script type="text/javascript">
+	layui.use('element', function(){
+		var element = layui.element;
+	});
+$(function () {
+    window.optionchanged = false;
+    $('#myTab a').click(function (e) {
+        e.preventDefault();//阻止a链接的跳转行为
+        $(this).tab('show');//显示当前选中的链接及关联的content
+    })
+    $('input[name=is_pbox]').click(function(){
+	    var storeType = $(this).val();
+	    if(storeType == 1){
+	        $('.is-pbox').show();
+	    }else{
+	        $('.is-pbox').hide();
+	    }
+	});
+    $("#hasoption").click(function(){
+    	var obj = $(this);
+    	if (obj.get(0).checked){
+			//选中
+			$('#tboption').show();
+		}else{
+			$('#tboption').hide();
+		}
+	})
+	require(['jquery.ui'],function(){
+		$('#specs').sortable({
+			stop: function(){
+				refreshOptions();
+			}
+		});
+	});
+	//新规格开始
+	$('#add-attr').on("click", function () {
+		var $_this = $(this);
+		$_this.html("正在处理...").attr("disabled", "true").toggleClass("btn-primary");
+		$.ajax({
+			//
+			"url": "{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'tpl','method'=>'attr','store_id'=>$store_id))}",
+			success:function(data){
+				$_this.html('<i class="fa fa-plus"></i> 添加商品属性').removeAttr("disabled").toggleClass("btn-primary");
+				$('.attr-box').append(data);
+
+			}
+		});
+	});
+	$('#add-new-specs').on("click", function () {
+		var $_this = $(this);
+		$_this.html("正在处理...").attr("disabled", "true").toggleClass("btn-primary");
+		$.ajax({
+			//
+			"url": "{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'tpl','method'=>'new_specs','store_id'=>$store_id))}",
+			success:function(data){
+				$_this.html('<i class="fa fa-plus"></i> 添加商品规格').removeAttr("disabled").toggleClass("btn-primary");
+				$('.new-specs-box').append(data);
+
+			}
+		});
+		$('#new-specs-btn').hide();
+	});
+	$('body').on('click', '.add-new-specs-item', function () {
+		var $_this = $(this);
+		$(this).html("正在处理...").attr("disabled", "true");
+		$.ajax({
+			//
+			"url": "{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'tpl','method'=>'add_new_specs_item','store_id'=>$store_id))}",
+			success:function(data){
+				$_this.html('<i class="fa fa-plus"></i> 添加选项').removeAttr("disabled");
+				$('#new_specs_item_box').append(data);
+
+			}
+		});
+	});
+	$('.new-specs-box').on('click', '.remove-item', function () {
+		$(this).closest('.new_spec_item').remove();
+	});
+	//新规格结束
+});
+function removeNewSpec() {
+	if (confirm('确认要删除此规格?')){
+		$('.new-specs-box').html('');
+		$('#new-specs-btn').show();
+	}
+
+}
+function removeAttr(specid){
+	if (confirm('确认要删除此商品属性?')){
+		$("#attr_" + specid).remove();
+	}
+}
+function removeAttrItem(obj) {
+	$(obj).closest('.attr_item_item').remove();
+}
+function removeSpec(specid){
+	if (confirm('确认要删除此规格?')){
+		$("#spec_" + specid).remove();
+		refreshOptions();
+	}
+}
+function removeSpecItem(obj){
+	$(obj).closest('.spec_item_item').remove();
+	refreshOptions();
+}
+function addSpecItem(specid){
+    $("#add-specitem-" + specid).html("正在处理...").attr("disabled", "true");
+	$.ajax({
+		"url": "{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'tpl','method'=>'specitem','store_id'=>$store_id))}&specid=" + specid,
+		success:function(data){
+			$("#add-specitem-" + specid).html('<i class="fa fa-plus"></i> 添加规格项').removeAttr("disabled");
+			$('#spec_item_' + specid).append(data);
+
+		}
+	});
+}
+function addSpec(){
+    var len = $(".spec_item").length;
+    $("#add-spec").html("正在处理...").attr("disabled", "true").toggleClass("btn-primary");
+	$.ajax({
+		"url": "{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'tpl','method'=>'spec','store_id'=>$store_id))}",
+
+		success:function(data){
+			$("#add-spec").html('<i class="fa fa-plus"></i> 添加规格').removeAttr("disabled").toggleClass("btn-primary"); ;
+			$('#specs').append(data);
+
+		}
+	});
+}
+
+function addAttrItem(specid){
+	$("#add-attritem-" + specid).html("正在处理...").attr("disabled", "true");
+	$.ajax({
+		"url": "{php echo $this->createWebUrl('goods',array('op'=>'tpl','method'=>'attr_item','store_id'=>$store_id))}&specid=" + specid,
+		success:function(data){
+			$("#add-attritem-" + specid).html('<i class="fa fa-plus"></i> 添加属性项').removeAttr("disabled");
+			$('#attr_item_' + specid).append(data);
+
+		}
+	});
+}
+
+function refreshOptions(){
+ var html = '<table class="table table-bordered table-condensed"><thead><tr class="active">';
+	var specs = [];
+         if($('.spec_item').length<=0){
+             $("#options").html('');
+             return;
+         }
+	$(".spec_item").each(function(i){
+		var _this = $(this);
+
+		var spec = {
+			id: _this.find(".spec_id").val(),
+			title: _this.find(".spec_title").val()
+		};
+
+		var items = [];
+		_this.find(".spec_item_item").each(function(){
+			var __this = $(this);
+			var item = {
+				id: __this.find(".spec_item_id").val(),
+				title: __this.find(".spec_item_title").val(),
+                virtual: __this.find(".spec_item_virtual").val(),
+				show:__this.find(".spec_item_show").get(0).checked?"1":"0"
+			}
+			items.push(item);
+		});
+		spec.items = items;
+		specs.push(spec);
+	});
+	specs.sort(function(x,y){
+		if (x.items.length > y.items.length){
+			return 1;
+		}
+		if (x.items.length < y.items.length) {
+			return -1;
+		}
+	});
+
+	var len = specs.length;
+	var newlen = 1;
+	var h = new Array(len);
+	var rowspans = new Array(len);
+	for(var i=0;i<len;i++){
+		html+="<th>" + specs[i].title + "</th>";
+		var itemlen = specs[i].items.length;
+		if(itemlen<=0) { itemlen = 1 };
+		newlen*=itemlen;
+
+		h[i] = new Array(newlen);
+		for(var j=0;j<newlen;j++){
+			h[i][j] = new Array();
+		}
+		var l = specs[i].items.length;
+		rowspans[i] = 1;
+		for(j=i+1;j<len;j++){
+			rowspans[i]*= specs[j].items.length;
+		}
+	}
+	html += '<th><div class=""><div style="padding-bottom:10px;text-align:center;">价格</div><div class="input-group"><input type="text" class="form-control  input-sm option_marketprice_all"VALUE=""/><span class="input-group-addon"><a href="javascript:;" class="fa fa-angle-double-down" title="批量设置" onclick="setCol(\'option_marketprice\');"></a></span></div></div></th>';
+	html+='</tr></thead>';
+
+	for(var m=0;m<len;m++){
+		var k = 0,kid = 0,n=0;
+		for(var j=0;j<newlen;j++){
+			var rowspan = rowspans[m];
+			if( j % rowspan==0){
+				h[m][j]={title: specs[m].items[kid].title, virtual: specs[m].items[kid].virtual,html: "<td class='full' rowspan='" +rowspan + "'>"+ specs[m].items[kid].title+"</td>\r\n",id: specs[m].items[kid].id};
+			}
+			else{
+				h[m][j]={title:specs[m].items[kid].title,virtual: specs[m].items[kid].virtual, html: "",id: specs[m].items[kid].id};
+			}
+			n++;
+			if(n==rowspan){
+			kid++; if(kid>specs[m].items.length-1) { kid=0; }
+			n=0;
+			}
+		}
+	}
+
+	var hh = "";
+	for(var i=0;i<newlen;i++){
+		hh+="<tr>";
+		var ids = [];
+		var titles = [];
+                                    var virtuals = [];
+		for(var j=0;j<len;j++){
+			hh+=h[j][i].html;
+			ids.push( h[j][i].id);
+			titles.push( h[j][i].title);
+                           virtuals.push( h[j][i].virtual);
+		}
+		ids =ids.join('_');
+		titles= titles.join('+');
+
+		var val ={ id : "",title:titles, stock : "",presell : "",costprice : "",productprice : "",marketprice : "",weight:"",productsn:"",goodssn:"",virtual:virtuals };
+		if( $(".option_id_" + ids).length>0){
+			val ={
+				id : $(".option_id_" + ids+":eq(0)").val(),
+				title: titles,
+				marketprice : $(".option_marketprice_" + ids +":eq(0)").val(),
+                                  virtual : virtuals
+			}
+		}
+		hh += '<input data-name="option_id_' + ids+'" type="hidden" class="form-control option_id option_id_' + ids +'" value="' +(val.id=='undefined'?'':val.id )+'"/>';
+		hh += '<input data-name="option_ids" type="hidden" class="form-control option_ids option_ids_' + ids +'" value="' + ids +'"/>';
+		hh += '<input data-name="option_title_' + ids +'" type="hidden" class="form-control option_title option_title_' + ids +'" value="' +(val.title=='undefined'?'':val.title )+'"/></td>';
+		hh += '<td><input data-name="option_marketprice_' + ids+'" type="text" class="form-control option_marketprice option_marketprice_' + ids +'" value="' +(val.marketprice=='undefined'?'':val.marketprice )+'"/></td>';
+		hh += "</tr>";
+	}
+	html+=hh;
+	html+="</table>";
+	$("#options").html(html);
+}
+function setCol(cls){
+	$("."+cls).val( $("."+cls+"_all").val());
+}
+function showItem(obj){
+	var show = $(obj).get(0).checked?"1":"0";
+	$(obj).parents('.spec_item_item').find('.spec_item_show:eq(0)').val(show);
+}
+function showAttrItem(obj){
+	var show = $(obj).get(0).checked?"1":"0";
+	$(obj).parents('.attr_item_item').find('.attr_item_show:eq(0)').val(show);
+}
+$('#form').submit(function(){
+	if($('[name="class_id"]').val() == '0'){
+		util.message('请先选择分类');
+    	return false;
+	}
+    optionArray();
+    return true;
+});
+$("#deam-test").click(function(){
+
+	optionArray();
+});
+function optionArray(){
+	console.log(123);
+
+	var option_id = new Array();
+	$('.option_id').each(function (index,item) {
+		option_id.push($(item).val());
+	});
+
+	var option_ids = new Array();
+	$('.option_ids').each(function (index,item) {
+		option_ids.push($(item).val());
+	});
+
+	var option_title = new Array();
+	$('.option_title').each(function (index,item) {
+		option_title.push($(item).val());
+	});
+
+
+
+	var option_marketprice = new Array();
+	$('.option_marketprice').each(function (index,item) {
+		option_marketprice.push($(item).val());
+	});
+
+
+	var options = {
+			option_id : option_id,
+			option_ids : option_ids,
+			option_title : option_title,
+
+			option_marketprice : option_marketprice,
+	};
+	$("input[name='optionArray']").val(JSON.stringify(options));
+	console.log(JSON.stringify(options));
+}
+
+</script>
+{elseif $operation == 'class'}
+{if $method == 'list'}
+<form action="" method="post">
+<div class="table-responsive">
+	<table class="table we7-table table-hover">
+		<thead>
+		<tr>
+			<!-- <th style="width:40px;">
+				<input type="checkbox" name="checkall" value="" id="checkall" onclick="var ck = this.checked; $(':checkbox').each(function(){this.checked = ck});"/>
+			</th> -->
+			<th style="width:40px;">
+				ID
+			</th>
+			<th style="width:80px">显示顺序</th>
+			<th style="width:200px;">分类名称</th>
+			<th class="text-center" style="width:80px;">状态</th>
+			<th class="text-center" style="width:200px;">操作</th>
+		</tr>
+		</thead>
+		<tbody style="background: #fff">
+		{if empty($list)}
+		<tr><td colspan="5" style="text-align:center">还未添加分类！</td></tr>
+		{else}
+		{loop $list $item}
+		<tr>
+			<!-- <td><input type="checkbox" name="items[]" value="{$item['id']}" class="items" /></td> -->
+			<td style="width:40px;">{$item['id']}</td>
+			<td style="width:80px"><input type="text" name="sortid[{$item['id']}]" class="form-control" value="{$item['sortid']}"></td>
+			<td style="width:200px;">{$item['classname']}</td>
+			<td class="text-center">{if empty($item['enabled'])}<span class="label label-danger">隐藏</span>{elseif $item['enabled']=='1'}<span class="label label-success">显示</span>{/if}</td>
+			<td class="text-center">
+			{if in_array('store_class_edit',$user_permissionArr)}
+				<a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'class','method'=>'post','id'=>$item['id']))}" class="btn showtitle btn-default btn-sm" title="修改"><i class="fa fa-edit"></i></a>
+			{/if}
+			{if in_array('store_class_delete',$user_permissionArr)}
+                <a href="{php echo manage_url(array('r'=>'goods','ac'=>'index','op'=>'class','method'=>'delete','id'=>$item['id']))}" class="btn showtitle btn-default btn-sm" title="删除" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-trash"></i></a>
+			{/if}
+			</td>
+		</tr>
+		{/loop}
+		<tr>
+            <td colspan='5'>
+                <input type="hidden" name="token" value="{$_W['token']}" />
+                <input name="submit" type="submit" class="btn btn-primary" value="提交排序">
+            </td>
+        </tr>
+		{/if}
+		</tbody>
+	</table>
+    {$pager}
+</div>
+</form>
+<script type="text/javascript">
+	require(['bootstrap'], function ($) {
+        $('.showimg').hover(function () {
+            $(this).popover('show');
+        }, function () {
+            $(this).popover('hide');
+        });
+        $('.showtitle').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+    });
+</script>
+{elseif $method == 'post'}
+<form action="" method="post" class="form-horizontal form" id="form">
+<input type="hidden" name="id" value="{$class['id']}">
+<input type="hidden" name="store_id" value="{$store_id}">
+	<div class="panel we7-panel panel-default" style="padding-top: 30px;">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">排序</label>
+			<div class="col-md-9">
+				<input type="text" name="sortid" class="form-control" value="{$class['sortid']}" />
+				<div class="help-block">数字越大，排名越靠前,如果为空，默认排序方式为创建时间</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">分类名称</label>
+			<div class="col-md-9">
+				<input type="text" name="classname" class="form-control" value="{$class['classname']}" />
+			</div>
+		</div>
+		<div class="form-group">
+		    <label class="col-sm-2 control-label">状态</label>
+		    <div class="col-sm-9 col-xs-12">
+		        <label class="radio-inline" style="padding-left: 20px;">
+		            <input type="radio" name="enabled" value="1" {if $class['enabled'] == "1" || $class['enabled'] == ''} checked="checked" {/if}> 显示
+		        </label>
+		        <label class="radio-inline" style="padding-left: 20px;">
+		            <input type="radio" name="enabled" value="0" {if $class['enabled'] == "0"} checked="checked" {/if}> 隐藏
+		        </label>
+		    </div>
+		</div>
+		<div class="form-group"></div>
+	    <div class="form-group">
+	        <label class="col-sm-2 control-label"></label>
+	        <div class="col-sm-9 col-xs-12">
+	            <input type="submit" name="submit" value="提交" class="btn btn-primary">
+	            <input type="hidden" name="token" value="{$_W['token']}" />
+	           <input type="button" name="back" onclick="history.back()" style="margin-left:10px;" value="返回列表" class="btn btn-default">
+	        </div>
+	    </div>
+	</div>
+</form>
+{/if}
+{/if}
+</div>
+</div>
+{mtemplate '_footer'}

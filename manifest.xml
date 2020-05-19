@@ -1,0 +1,683 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest xmlns="http://www.vip-zyw.com" versionCode="0.8,1.0">
+
+	<application setting="false">
+		<name><![CDATA[自助点餐小程序]]></name>
+		<identifie><![CDATA[deam_food]]></identifie>
+		<version><![CDATA[2.0.12]]></version>
+		<type><![CDATA[biz]]></type>
+		<ability><![CDATA[自助点餐小程序]]></ability>
+		<description><![CDATA[自助点餐小程序]]></description>
+		<author><![CDATA[VIP资源网]]></author>
+		<url><![CDATA[http://www.vip-zyw.com]]></url>
+	</application>
+
+	<platform>
+		<subscribes>
+			<message type="user_get_card" />
+			<message type="card_pass_check" />
+			<message type="user_gifting_card" />
+			<message type="user_del_card" />
+			<message type="user_consume_card" />
+		</subscribes>
+
+		<handles>
+		</handles>
+
+		<rule embed="false" />
+		<card embed="false" />
+		
+		<supports>
+			<item type="wxapp" />
+	
+		</supports>
+        <plugins></plugins> 
+        <plugin-main name="" />
+
+	</platform>
+
+	<bindings>
+		<menu call="getMenus"> 
+		</menu>
+		<page>
+			<entry title="首页" do="deam_food/pages/index/index" state="" direct="false"/>
+		</page>
+
+	</bindings>
+
+	<permissions>
+	</permissions>
+
+	<install><![CDATA[
+CREATE TABLE IF NOT EXISTS `deam_deamx_food_coupon_activity` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `coupon_uniacid` int(11) NOT NULL,
+  `activity_id` int(11) NOT NULL,
+  `card_id` varchar(100) NOT NULL,
+  `activity_bg_color` varchar(100) NOT NULL,
+  `begin_time` int(11) NOT NULL,
+  `end_time` int(11) NOT NULL,
+  `gift_num` int(11) NOT NULL,
+  `max_partic_times_act` int(11) NOT NULL,
+  `max_partic_times_one_day` int(11) NOT NULL,
+  `min_amt` int(11) NOT NULL,
+  `to_user` varchar(100) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_amore_food` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `hid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `cid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `cai_name` varchar(64) NOT NULL DEFAULT '',
+  `img` varchar(128) NOT NULL DEFAULT '',
+  `pricetype` tinyint(1) NOT NULL DEFAULT '0',
+  `price` int(10) unsigned NOT NULL DEFAULT '0',
+  `flavor` varchar(500) NOT NULL DEFAULT '',
+  `brief` varchar(255) NOT NULL DEFAULT '',
+  `miaoshu` text NOT NULL,
+  `print_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `discount` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `stock` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `unit` varchar(18) NOT NULL DEFAULT '',
+  `status` tinyint(1) NOT NULL DEFAULT '1',
+  `canhe` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_amore_food_cate` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `hid` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `cate_name` varchar(32) NOT NULL DEFAULT '',
+  `sort` smallint(4) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_amore_food_spec` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `cai_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `spec` varchar(64) NOT NULL DEFAULT '',
+  `price` int(10) unsigned NOT NULL DEFAULT '0',
+  `sort` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_address` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `openid` varchar(100) DEFAULT NULL,
+  `member_id` int(11) DEFAULT NULL,
+  `realname` varchar(100) DEFAULT NULL,
+  `sex` tinyint(3) DEFAULT NULL,
+  `telphone` varchar(20) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `address_road` varchar(255) DEFAULT NULL,
+  `latitude` varchar(20) DEFAULT NULL,
+  `longitude` varchar(20) DEFAULT NULL,
+  `number` varchar(255) DEFAULT NULL,
+  `tag` varchar(100) DEFAULT NULL,
+  `is_default` tinyint(3) DEFAULT NULL,
+  `createtime` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_adv` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) DEFAULT NULL,
+  `sortid` int(10) DEFAULT NULL,
+  `adv_title` varchar(255) DEFAULT NULL,
+  `adv_img` varchar(255) DEFAULT NULL,
+  `adv_url` varchar(255) DEFAULT NULL,
+  `adv_isshow` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_class` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) DEFAULT NULL,
+  `store_id` int(10) DEFAULT NULL,
+  `sortid` int(10) DEFAULT NULL,
+  `classname` varchar(255) DEFAULT NULL,
+  `enabled` tinyint(1) DEFAULT NULL,
+  `createtime` int(10) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_coupon` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) DEFAULT NULL,
+  `coupon_uniacid` int(10) DEFAULT NULL,
+  `card_id` varchar(255) DEFAULT NULL,
+  `type` tinyint(3) DEFAULT NULL,
+  `logo_url` varchar(255) DEFAULT NULL,
+  `code_type` tinyint(3) DEFAULT NULL,
+  `brand_name` varchar(255) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `sub_title` varchar(255) DEFAULT NULL,
+  `color` varchar(255) DEFAULT NULL,
+  `notice` varchar(255) DEFAULT NULL,
+  `description` varchar(1000) DEFAULT NULL,
+  `quantity` int(10) DEFAULT NULL,
+  `use_custom_code` tinyint(3) DEFAULT NULL,
+  `bind_openid` tinyint(3) DEFAULT NULL,
+  `can_share` tinyint(3) DEFAULT NULL,
+  `can_give_friend` tinyint(3) DEFAULT NULL,
+  `get_limit` int(10) DEFAULT NULL,
+  `service_phone` varchar(20) DEFAULT NULL,
+  `status` tinyint(3) DEFAULT NULL,
+  `is_display` int(10) DEFAULT NULL,
+  `is_selfconsume` int(10) DEFAULT NULL,
+  `promotion_url_name` varchar(255) DEFAULT NULL,
+  `promotion_url` varchar(255) DEFAULT NULL,
+  `promotion_url_sub_title` varchar(255) DEFAULT NULL,
+  `source` int(10) DEFAULT NULL,
+  `date_info` varchar(255) DEFAULT NULL,
+  `extra` varchar(1000) DEFAULT NULL,
+  `dosage` int(10) unsigned DEFAULT '0',
+  `least_cost` int(11) DEFAULT '0',
+  `reduce_cost` int(11) DEFAULT '0',
+  `can_use_with_other_discount` tinyint(3) NOT NULL DEFAULT '1',
+  `createtime` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_coupon_activity` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `coupon_uniacid` int(11) NOT NULL,
+  `activity_id` int(11) NOT NULL,
+  `card_id` varchar(100) NOT NULL,
+  `activity_bg_color` varchar(100) NOT NULL,
+  `begin_time` int(11) NOT NULL,
+  `end_time` int(11) NOT NULL,
+  `gift_num` int(11) NOT NULL,
+  `max_partic_times_act` int(11) NOT NULL,
+  `max_partic_times_one_day` int(11) NOT NULL,
+  `min_amt` int(11) NOT NULL,
+  `to_user` varchar(100) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_coupon_record` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `acid` int(10) unsigned NOT NULL,
+  `card_id` varchar(50) NOT NULL,
+  `openid` varchar(50) NOT NULL,
+  `unionid` varchar(100) DEFAULT NULL,
+  `friend_openid` varchar(50) NOT NULL,
+  `givebyfriend` tinyint(3) unsigned NOT NULL,
+  `code` varchar(50) NOT NULL,
+  `hash` varchar(32) NOT NULL,
+  `addtime` int(10) unsigned NOT NULL,
+  `usetime` int(10) unsigned NOT NULL,
+  `order_id` int(10) DEFAULT '0',
+  `starttime` int(11) DEFAULT NULL,
+  `endtime` int(11) DEFAULT NULL,
+  `status` tinyint(3) NOT NULL,
+  `clerk_name` varchar(15) NOT NULL,
+  `clerk_id` int(10) unsigned NOT NULL,
+  `store_id` int(10) unsigned NOT NULL,
+  `clerk_type` tinyint(3) unsigned NOT NULL,
+  `couponid` int(10) unsigned NOT NULL,
+  `uid` int(10) unsigned NOT NULL,
+  `grantmodule` varchar(255) NOT NULL,
+  `remark` varchar(255) NOT NULL,
+  `rule_id` int(10) DEFAULT '0',
+  `source_orderid` int(10) DEFAULT '0',
+  `granttype` tinyint(4) NOT NULL COMMENT '获取卡券的方式：1 兑换，2 扫码，3派发',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`,`acid`),
+  KEY `card_id` (`card_id`),
+  KEY `hash` (`hash`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_coupon_rules` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `status` tinyint(3) DEFAULT NULL,
+  `starttime` int(11) DEFAULT NULL,
+  `endtime` int(11) DEFAULT NULL,
+  `reduce_cost` decimal(10,2) DEFAULT NULL,
+  `repeat_send` tinyint(3) DEFAULT NULL,
+  `limit_send` int(11) DEFAULT NULL,
+  `coupon_info` text,
+  `createtime` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_credits_record` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` int(10) unsigned NOT NULL,
+  `uniacid` int(11) NOT NULL,
+  `credittype` varchar(10) NOT NULL,
+  `num` decimal(10,2) NOT NULL,
+  `operator` int(10) unsigned NOT NULL,
+  `module` varchar(30) NOT NULL,
+  `clerk_id` int(10) unsigned NOT NULL,
+  `store_id` int(10) unsigned NOT NULL,
+  `createtime` int(10) unsigned NOT NULL,
+  `remark` varchar(200) NOT NULL,
+  `clerk_type` tinyint(3) unsigned NOT NULL,
+  `real_uniacid` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `uid` (`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_deliver_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` varchar(200) NOT NULL,
+  `status` int(10) DEFAULT NULL,
+  `remark` varchar(500) NOT NULL,
+  `updatetime` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_desknumber` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `store_id` int(11) DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `wxacode` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_goods` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) DEFAULT NULL,
+  `store_id` int(10) DEFAULT NULL,
+  `displayorder` int(10) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `intro` varchar(255) DEFAULT NULL,
+  `class_id` int(10) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `is_pbox` tinyint(3) DEFAULT '0',
+  `pbox_price` decimal(10,2) DEFAULT NULL,
+  `unit` varchar(100) DEFAULT NULL,
+  `img` varchar(255) DEFAULT NULL,
+  `hasoption` tinyint(1) DEFAULT '0',
+  `status` tinyint(3) DEFAULT '0',
+  `createtime` int(10) DEFAULT NULL,
+  `realsales` int(10) DEFAULT '0',
+  `old_option` tinyint(4) DEFAULT '1',
+  `goods_attr` text,
+  `goods_specs_title` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_goods_option` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT '0',
+  `store_id` int(11) DEFAULT '0',
+  `goodsid` int(10) DEFAULT '0',
+  `title` varchar(50) DEFAULT '',
+  `marketprice` decimal(10,2) DEFAULT '0.00',
+  `stock` int(11) DEFAULT '0',
+  `displayorder` int(11) DEFAULT '0',
+  `specs` text,
+  `realsales` int(11) DEFAULT '0',
+  `is_new` tinyint(4) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_goodsid` (`goodsid`),
+  KEY `idx_displayorder` (`displayorder`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_goods_spec` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT '0',
+  `store_id` int(11) DEFAULT '0',
+  `goodsid` int(11) DEFAULT '0',
+  `title` varchar(50) DEFAULT '',
+  `description` varchar(1000) DEFAULT '',
+  `displaytype` tinyint(3) DEFAULT '0',
+  `content` text,
+  `displayorder` int(11) DEFAULT '0',
+  `propId` varchar(255) DEFAULT '',
+  `is_new` tinyint(4) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_goodsid` (`goodsid`),
+  KEY `idx_displayorder` (`displayorder`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_goods_spec_item` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT '0',
+  `store_id` int(11) DEFAULT '0',
+  `specid` int(11) DEFAULT '0',
+  `title` varchar(255) DEFAULT '',
+  `show` int(11) DEFAULT '0',
+  `displayorder` int(11) DEFAULT '0',
+  `valueId` varchar(255) DEFAULT '',
+  `virtual` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_specid` (`specid`),
+  KEY `idx_show` (`show`),
+  KEY `idx_displayorder` (`displayorder`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_members` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `openid` varchar(100) DEFAULT NULL,
+  `credit1` decimal(10,2) DEFAULT NULL,
+  `credit2` decimal(10,2) DEFAULT '0.00',
+  `realname` varchar(255) DEFAULT NULL,
+  `telephone` varchar(25) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_notice` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `from_openid` varchar(200) DEFAULT NULL,
+  `store_id` int(11) DEFAULT '0',
+  `type` tinyint(3) DEFAULT NULL COMMENT '1:订单通知;2:呼叫通知;',
+  `title` varchar(255) DEFAULT NULL,
+  `content` text COMMENT '文字/音频',
+  `status` tinyint(3) DEFAULT '0',
+  `createtime` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_notify_id` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `openid` varchar(100) DEFAULT NULL,
+  `form_id` varchar(100) DEFAULT NULL,
+  `last_count` int(4) DEFAULT NULL,
+  `createtime` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_order` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `ordersn` varchar(100) DEFAULT NULL,
+  `store_id` int(11) DEFAULT NULL,
+  `openid` varchar(100) DEFAULT NULL,
+  `member_id` int(11) DEFAULT NULL,
+  `order_type` tinyint(3) DEFAULT '1',
+  `pay_type` tinyint(3) DEFAULT '1',
+  `desk_id` int(11) DEFAULT '0',
+  `goods_list` text,
+  `count` int(11) DEFAULT NULL,
+  `pbox_fee` decimal(10,2) DEFAULT '0.00',
+  `send_fee` decimal(10,2) DEFAULT '0.00',
+  `price` decimal(10,2) DEFAULT NULL,
+  `need_pay` decimal(10,2) DEFAULT NULL,
+  `enoughdeduct` decimal(10,2) DEFAULT '0.00',
+  `use_coupon` int(10) DEFAULT '0',
+  `coupon_type` tinyint(3) NOT NULL DEFAULT '0' COMMENT '0为普通卡券，1为no_cash',
+  `coupon_price` decimal(10,2) DEFAULT '0.00',
+  `pay_price` decimal(10,2) DEFAULT NULL,
+  `status` tinyint(3) DEFAULT NULL,
+  `remark` varchar(255) DEFAULT NULL,
+  `paytime` int(11) DEFAULT '0',
+  `prepay_id` varchar(255) DEFAULT NULL,
+  `message_count` int(10) DEFAULT '0',
+  `order_number` varchar(20) DEFAULT NULL,
+  `createtime` int(11) DEFAULT NULL,
+  `receivetime` int(11) DEFAULT NULL,
+  `is_prompt` tinyint(3) DEFAULT '1',
+  `address_info` text,
+  `need_send_coupon` tinyint(3) DEFAULT '0',
+  `is_send_coupon` tinyint(3) DEFAULT '0',
+  `deliver_type` tinyint(3) DEFAULT '0',
+  `deliver_dada_failreason` varchar(255) DEFAULT NULL,
+  `refund_fee` decimal(10,2) DEFAULT '0.00',
+  `print_count` int(11) DEFAULT '0',
+  `getfood_time` varchar(255) DEFAULT NULL,
+  `wechat_paytype` tinyint(4) DEFAULT '0',
+  `is_get` tinyint(4) DEFAULT '1',
+  `reserved_telephone` varchar(20) DEFAULT NULL COMMENT '自取单预留手机号',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_order_goods` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `orderid` int(11) DEFAULT NULL,
+  `store_id` int(11) DEFAULT '0',
+  `goodsid` int(11) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `total` int(11) DEFAULT NULL,
+  `optionid` int(11) DEFAULT NULL,
+  `createtime` int(11) DEFAULT NULL,
+  `daytime` int(11) DEFAULT NULL,
+  `optionname` varchar(255) DEFAULT NULL,
+  `openid` varchar(100) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_printer` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) DEFAULT NULL,
+  `store_id` int(11) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `type` tinyint(3) DEFAULT NULL,
+  `print_type` tinyint(3) DEFAULT '0',
+  `print_data` text,
+  `print_class` varchar(1000) DEFAULT NULL,
+  `createtime` int(11) DEFAULT NULL,
+  `merchid` int(10) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT '0',
+  `order_qrcode` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_recharge_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `openid` varchar(100) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `ordersn` varchar(50) NOT NULL,
+  `title` varchar(255) DEFAULT '会员充值',
+  `price` decimal(10,2) NOT NULL,
+  `gives` decimal(10,2) NOT NULL,
+  `status` tinyint(1) NOT NULL,
+  `paytime` int(11) NOT NULL,
+  `prepay_id` varchar(255) DEFAULT NULL,
+  `createtime` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_refundlog` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `refund_type` tinyint(2) DEFAULT '1',
+  `refund_uniontid` varchar(64) DEFAULT NULL,
+  `reason` varchar(100) DEFAULT NULL,
+  `uniontid` varchar(64) DEFAULT NULL,
+  `fee` decimal(10,2) DEFAULT NULL,
+  `status` int(2) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_settings` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `type` tinyint(1) DEFAULT NULL,
+  `bg_color` varchar(20) DEFAULT NULL,
+  `fg_color` varchar(20) DEFAULT NULL,
+  `share_title` varchar(255) DEFAULT NULL,
+  `area_limit` int(10) DEFAULT '0',
+  `tencent_map_apikey` varchar(100) DEFAULT NULL,
+  `single_storeid` int(10) DEFAULT NULL,
+  `store_blogo` varchar(255) DEFAULT NULL,
+  `copyright` varchar(255) DEFAULT NULL,
+  `template_status` tinyint(3) DEFAULT '0',
+  `template_id` varchar(100) DEFAULT NULL,
+  `template_id_param` varchar(200) DEFAULT '',
+  `get_food_template_id` varchar(100) DEFAULT NULL,
+  `get_food_template_id_param` varchar(200) DEFAULT '',
+  `takeout_template_id` varchar(255) DEFAULT NULL,
+  `takeout_template_id_param` varchar(200) DEFAULT '',
+  `sms_status` tinyint(3) DEFAULT '0',
+  `sms_type` tinyint(3) DEFAULT '1',
+  `sms_params` text,
+  `login_logo` varchar(255) DEFAULT NULL,
+  `login_bg` varchar(255) DEFAULT NULL,
+  `about_us` text,
+  `store_count` int(11) DEFAULT '0',
+  `wxapp_scan` tinyint(3) DEFAULT '1',
+  `wxapp_scan_name` varchar(20) DEFAULT '堂食',
+  `wxapp_scan_color` varchar(20) DEFAULT '#ffa1a1',
+  `wxapp_scan_intro` varchar(60) DEFAULT '点我扫码进入',
+  `wxapp_scan_logo` varchar(255) DEFAULT NULL,
+  `wxapp_takeout` tinyint(3) DEFAULT '1',
+  `wxapp_takeout_name` varchar(20) DEFAULT '外卖',
+  `wxapp_takeout_color` varchar(20) DEFAULT '#faa040',
+  `wxapp_takeout_intro` varchar(60) DEFAULT '点餐快速配送',
+  `wxapp_takeout_logo` varchar(255) DEFAULT NULL,
+  `wxapp_getself` tinyint(3) DEFAULT '1',
+  `wxapp_getself_name` varchar(20) DEFAULT '自取',
+  `wxapp_getself_color` varchar(20) DEFAULT '#76bdef',
+  `wxapp_getself_intro` varchar(60) DEFAULT '点我开始订餐',
+  `wxapp_getself_logo` varchar(255) DEFAULT NULL,
+  `coupon_uniacid` int(10) DEFAULT NULL,
+  `deliver_dada_status` tinyint(3) DEFAULT '0',
+  `deliver_dada_app_key` varchar(100) DEFAULT NULL,
+  `deliver_dada_app_secret` varchar(100) DEFAULT NULL,
+  `deliver_dada_shopid` int(10) DEFAULT NULL,
+  `bell_settings` text,
+  `auth_setting` varchar(300) DEFAULT NULL,
+  `plugins` text,
+  `sets` text,
+  `wxacode_color` tinyint(4) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_store` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `province` varchar(255) DEFAULT NULL,
+  `city` varchar(255) DEFAULT NULL,
+  `district` varchar(255) DEFAULT NULL,
+  `district_edit_self` tinyint(3) DEFAULT '0',
+  `address` varchar(255) DEFAULT NULL,
+  `longitude` varchar(20) DEFAULT NULL,
+  `latitude` varchar(20) DEFAULT NULL,
+  `status` tinyint(3) DEFAULT '1',
+  `is_getself` tinyint(3) DEFAULT '1',
+  `is_takeout` tinyint(3) DEFAULT '1',
+  `close_reason` varchar(255) DEFAULT NULL,
+  `starttime` varchar(20) DEFAULT NULL,
+  `endtime` varchar(20) DEFAULT NULL,
+  `bg_color` varchar(20) DEFAULT NULL,
+  `fg_color` varchar(20) DEFAULT NULL,
+  `imgs` text,
+  `operator` text,
+  `notice_tel` varchar(1000) DEFAULT NULL,
+  `remark_text` varchar(255) DEFAULT NULL,
+  `auto_order` tinyint(3) DEFAULT '1',
+  `wxacode` varchar(255) DEFAULT NULL,
+  `start_price` decimal(10,2) DEFAULT NULL,
+  `send_limit` decimal(10,2) DEFAULT NULL,
+  `send_fee` decimal(10,2) DEFAULT NULL,
+  `deliver_area_type` tinyint(3) DEFAULT '0',
+  `deliver_type` tinyint(3) DEFAULT '0',
+  `deliver_dada_shopno` varchar(100) DEFAULT NULL,
+  `deliver_dada_citycode` varchar(20) DEFAULT NULL,
+  `enoughmoney` decimal(10,2) DEFAULT '0.00',
+  `enoughdeduct` decimal(10,2) DEFAULT '0.00',
+  `createtime` int(10) DEFAULT NULL,
+  `takeout_open_time` varchar(255) DEFAULT NULL,
+  `payment` text,
+  `telephone` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `ims_deamx_food_store_clerk` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `store_id` int(11) DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `password` varchar(50) DEFAULT NULL,
+  `realname` varchar(50) DEFAULT NULL,
+  `telphone` varchar(20) DEFAULT NULL,
+  `status` tinyint(3) DEFAULT '1',
+  `remark` varchar(255) DEFAULT NULL,
+  `permission` text,
+  `lastvisit` int(11) DEFAULT NULL,
+  `lastip` varchar(100) DEFAULT NULL,
+  `system_uid` int(10) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+]]></install>
+	<uninstall><![CDATA[DROP TABLE IF EXISTS `deam_deamx_food_coupon_activity`;
+DROP TABLE IF EXISTS `ims_amore_food`;
+DROP TABLE IF EXISTS `ims_amore_food_cate`;
+DROP TABLE IF EXISTS `ims_amore_food_spec`;
+DROP TABLE IF EXISTS `ims_deamx_food_address`;
+DROP TABLE IF EXISTS `ims_deamx_food_adv`;
+DROP TABLE IF EXISTS `ims_deamx_food_class`;
+DROP TABLE IF EXISTS `ims_deamx_food_coupon`;
+DROP TABLE IF EXISTS `ims_deamx_food_coupon_activity`;
+DROP TABLE IF EXISTS `ims_deamx_food_coupon_record`;
+DROP TABLE IF EXISTS `ims_deamx_food_coupon_rules`;
+DROP TABLE IF EXISTS `ims_deamx_food_credits_record`;
+DROP TABLE IF EXISTS `ims_deamx_food_deliver_log`;
+DROP TABLE IF EXISTS `ims_deamx_food_desknumber`;
+DROP TABLE IF EXISTS `ims_deamx_food_goods`;
+DROP TABLE IF EXISTS `ims_deamx_food_goods_option`;
+DROP TABLE IF EXISTS `ims_deamx_food_goods_spec`;
+DROP TABLE IF EXISTS `ims_deamx_food_goods_spec_item`;
+DROP TABLE IF EXISTS `ims_deamx_food_members`;
+DROP TABLE IF EXISTS `ims_deamx_food_notice`;
+DROP TABLE IF EXISTS `ims_deamx_food_notify_id`;
+DROP TABLE IF EXISTS `ims_deamx_food_order`;
+DROP TABLE IF EXISTS `ims_deamx_food_order_goods`;
+DROP TABLE IF EXISTS `ims_deamx_food_printer`;
+DROP TABLE IF EXISTS `ims_deamx_food_recharge_log`;
+DROP TABLE IF EXISTS `ims_deamx_food_refundlog`;
+DROP TABLE IF EXISTS `ims_deamx_food_settings`;
+DROP TABLE IF EXISTS `ims_deamx_food_store`;
+DROP TABLE IF EXISTS `ims_deamx_food_store_clerk`;
+]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+
+</manifest>

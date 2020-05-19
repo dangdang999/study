@@ -1,0 +1,164 @@
+{mtemplate '_header_base'}
+<style type="text/css">
+body{
+	max-width: 100% !important;
+	min-width: 100% !important;
+}
+.dm-navbar-header{
+	left: 0;
+	width: 100%;
+}
+.bell-content{
+	position: relative;
+    display: block;
+    margin-left: 0px;
+    margin-top: 60px;
+    padding: 20px;
+}
+.bell-content .title{
+	text-align: center;
+	font-size: 26px;
+}
+.deam-table{
+	margin-top: 10px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+}
+.deam-table .table{
+	margin-bottom: 0;
+}
+.deam-table .table>thead>tr>th,.deam-table .table>tbody>tr>th, .deam-table .table>tfoot>tr>th, .deam-table .table>thead>tr>td, .deam-table .table>tbody>tr>td, .deam-table .table>tfoot>tr>td{
+	padding: 15px 8px;
+}
+.deam-table .table-striped>tbody#list-content>tr:nth-child(even) {
+    /*background-color: #ffc283;*/
+}
+</style>
+{if !empty($_W['deam_food']['manage']['uid'])}
+<div class="dm-navbar-header">
+	<ul>
+		<span class="store-name">{$storeinfo['name']}</span>
+		{if empty($nobell)}
+		<a href="{php echo manage_url(array('r'=>'bell','ac'=>'index','nobell'=>'1'))}" class="showtitle" data-placement="bottom" data-original-title="关闭声音"><i class="icon icon-yuyin" style="font-size: 32px;color: #454545;vertical-align: sub;"></i></a>
+		{else}
+		<a href="{php echo manage_url(array('r'=>'bell','ac'=>'index'))}" data-original-title="开启声音" data-placement="bottom" class="showtitle"><i class="icon icon-lingsheng" style="font-size: 32px;color: #ff880d;vertical-align: sub;"></i></a>
+		{/if}
+		<li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{$_W['deam_food']['manage']['username']}<span></span></a>
+            <ul class="dropdown-menu">
+                <!-- <li class="divider"></li> -->
+                <li><a onclick="return confirm('确定退出登录？');return false;" href="{php echo manage_url(array('r'=>'user','ac'=>'logout'))}"> 退出登录</a></li>
+            </ul>
+        </li>
+	</ul>
+</div>
+{/if}
+<div class="bell-content">
+	<div class="title">呼叫服务员</div>
+	<div class="deam-table">
+		<table class="table table-striped">
+	      <thead>
+	        <tr>
+	          <th>#</th>
+	          <th>呼叫时间</th>
+	          <th>呼叫内容</th>
+	          <th class="text-center">操作</th>
+	        </tr>
+	      </thead>
+	      <tbody id="loading">
+	      	
+	      </tbody>
+	      <tbody id="list-content">
+	      	
+	      	
+	      </tbody>
+	    </table>
+	</div>
+</div>
+<script type="text/javascript">
+var loopTime = 8000;
+var audioList = [];
+function order_prompt(){
+	$.ajax({
+		"url": "{php echo manage_url(array('r'=>'bell','ac'=>'index','op'=>'getlist'))}",
+		dataType: "json",
+		cache: false,
+		async:false, 
+		beforeSend:function(){
+			$("#nolist").remove();
+			var html = '<tr><td colspan="4" class="text-center">加载中...</td></tr>';
+			$("#loading").html(html);
+		},
+		success:function(data){
+			if(data.status == '1'){
+				if(data.result.total=='0'){
+					var html = '<tr id="nolist"><td colspan="4" class="text-center">无人呼叫服务员</td></tr>';
+				}else{
+					var result = data.result.list;
+					var html = "";
+					audioList = [];
+					result.forEach(function(elem,index){
+						html += '<tr><th>'+elem.id+'</th><td>'+elem.createtime+'</td><td>'+elem.title+'</td><td class="text-center"><a href="{php echo manage_url(array("r"=>"bell","ac"=>"index","op"=>"deal"))}&id='+elem.id+'">收到</a></td></tr>';
+						audioList.push("../data/"+elem.content);
+					});
+				}
+				$("#list-content").html(html);
+				// var promptSound = new Audio("../addons/deam_food/static/audios/prompt-sound.mp3");
+				// promptSound.play();
+				$("#loading").html("");
+			}
+		}
+	});
+	
+	// loopTime = Math.floor(Math.random()*10+1);
+	// loopTime = loopTime * 1000;
+	// console.log(new Date());
+	//console.log(audioList.length);
+	setTimeout("order_prompt()",10000);
+}
+function bell_prompt(){
+	var audioArr = audioList;
+	if(audioList.length>0){
+		loopTime = 8000 * audioArr.length;
+	}else{
+		loopTime = 8000;
+	}
+	var myAudio = new Audio(); 
+	myAudio.preload = true; 
+	myAudio.controls = true; 
+	myAudio.src = audioArr.pop();         //每次读数组最后一个元素 
+	myAudio.addEventListener('ended', playEndedHandler, false); 
+	myAudio.play(); 
+	//document.getElementById("audioBox").appendChild(myAudio); 
+	myAudio.loop = false;//禁止循环，否则无法触发ended事件 
+	function playEndedHandler(){ 
+	myAudio.src = audioArr.pop();
+	myAudio.play(); 
+	console.log(audioArr.length); 
+	!audioArr.length && myAudio.removeEventListener('ended',playEndedHandler,false);//只有一个元素时解除绑定 
+	} 
+	console.log(new Date());
+	setTimeout("bell_prompt()",loopTime);
+}
+require(['bootstrap'], function ($) {
+    $('.showimg').hover(function () {
+        $(this).popover('show');
+    }, function () {
+        $(this).popover('hide');
+    });
+    $('.showtitle').hover(function () {
+        $(this).tooltip('show');
+    }, function () {
+        $(this).tooltip('hide');
+    });
+});
+$(function(){
+	order_prompt();
+	{if empty($nobell)}
+	setTimeout("bell_prompt()",10000);
+	{/if}
+	
+})
+</script>
+</body>
+</html>

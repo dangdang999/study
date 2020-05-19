@@ -1,0 +1,1052 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">系统设定</div>
+    <ul>
+        {loop $deam_frames $keyItem}
+        <li class="{$keyItem['active']}"><a href="{$keyItem['url']}">{$keyItem['title']}</a></li>
+        {/loop}
+        
+    </ul>
+</div>
+<div class="dm-container">
+<div class="dm-content" {if $operation == 'deliver' || $operation == 'payset'} style="padding-top: 0" {/if}>
+{if $operation == 'basic'}
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span>平台名称</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="name" value="{$settings['name']}">
+        <div class="help-block"></div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商户类型</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="type" value="1" {if $settings['type']=='' || $settings['type'] == '1'} checked=""{/if}> 单门店
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="type" value="2" {if $settings['type']=='2'} checked=""{/if}> 多门店
+        </label>
+        <div class="help-block">单门店没有选择门店页面，点击点餐按钮后直接跳转到点餐页面</div>
+    </div>
+</div>
+<div class="form-group area-limit" {if $settings['type']=='' || $settings['type'] == '1'} style="display: none" {/if}>
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span>门店显示范围</label>
+    <div class="col-sm-9 col-xs-12">
+        <div class="input-group">
+            <input class="form-control" type="text" name="area_limit" value="{$settings['area_limit']}">
+            <div class="input-group-addon">米</div>
+        </div>
+        <div class="help-block">仅对多门店类型有效，单位：米，显示所有门店请设置为0</div>
+    </div>
+</div>
+<div class="form-group single-storeid" {if $settings['type']=='2'} style="display: none" {/if}>
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span>显示门店</label>
+    <div class="col-sm-9 col-xs-12">
+        <!-- <input class="form-control" type="text" name="single_storeid" value="{$settings['single_storeid']}"> -->
+        <select class="control-label" name="single_storeid" style="padding-top: 0;padding-left: 8px;width: 100%;">
+            {loop $storeList $store}
+            <option value="{$store['id']}" {if $settings['single_storeid'] == $store['id']} selected="" {/if}>{$store['name']}</option>
+            {/loop}
+        </select>
+        <div class="help-block">单门店类型时显示的门店</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">顶部标题栏背景色</label>
+    <div class="col-sm-8 col-xs-12">
+        {php echo tpl_form_field_color('bg_color',empty($settings['bg_color']) ? '#000000' : $settings['bg_color']);}
+        <div class="help-block"><font color="#FF0000">默认为#000000</font></div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">顶部标题栏前景色</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="fg_color" value="#ffffff" {if $settings['fg_color']=='' || $settings['fg_color'] == '#ffffff'} checked=""{/if}> 白色
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="fg_color" value="#000000" {if $settings['fg_color']=='#000000'} checked=""{/if}> 黑色
+        </label>
+        <div class="help-block">包括按钮、标题、状态栏的颜色，仅支持 白色 和 黑色</div>
+    </div>
+</div>
+<div style="color: red !important;">&#x672c;&#x6e90;&#x7801;&#x7531;&#xff1a;&#x8d44;&#x6e90;&#x90a6;&#x0028;&#x0077;&#x0077;&#x0077;&#x002e;&#x0077;&#x0061;&#x007a;&#x0079;&#x0062;&#x002e;&#x0063;&#x006f;&#x006d;&#x0029;&#x7834;&#x89e3;&#x53d1;&#x5e03;&#xff0c;&#x66f4;&#x591a;&#x6e90;&#x7801;&#x8d44;&#x6e90;&#x8bf7;&#x8bbf;&#x95ee;&#x8d44;&#x6e90;&#x90a6;&#x3002;</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>分享标题</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="share_title" value="{$settings['share_title']}">
+        <div class="help-block"></div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>腾讯地图apikey</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="tencent_map_apikey" value="{$settings['tencent_map_apikey']}">
+        <div class="help-block">留空则使用模块自带的apikey（公用key，配额可能会不足），建议自己申请</div>
+        <div class="help-block">申请地址：http://lbs.qq.com/key.html，请选择应用于“服务端”</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>底部门店Logo</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_image('store_blogo',$settings['store_blogo']);}
+        <div class="help-block">留空不显示，建议尺寸110px*30px或11:3比例长宽</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>关于我们</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_ueditor('about_us', $settings['about_us']);}
+        <div class="help-block"></div>
+    </div>
+</div>
+<div class="form-group col-sm-12">
+    <input type="hidden" name="id" value="{$store['id']}" />
+    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+<script type="text/javascript">
+$('input[name=type]').click(function(){
+    var storeType = $(this).val();
+    if(storeType == 2){
+        $('.area-limit').show();
+        $('.single-storeid').hide();
+    }else{
+        $('.area-limit').hide();
+        $('.single-storeid').show();
+    }
+});
+</script>
+{elseif $operation == 'auth'}
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>显示授权名称</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="auth_setting[name]" value="{$settings['auth_setting']['name']}">
+        <div class="help-block"></div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>显示授权头像</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_image('auth_setting[logo]',$settings['auth_setting']['logo']);}
+        <div class="help-block">留空不显示，建议尺寸200px*200px或1:1比例长宽</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>显示授权简介</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="auth_setting[intro]" value="{$settings['auth_setting']['intro']}">
+        <div class="help-block">建议20个字以内</div>
+    </div>
+</div>
+<div class="form-group col-sm-12">
+    <input type="hidden" name="id" value="{$store['id']}" />
+    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+{elseif $operation == 'function'}
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启堂食扫码</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="wxapp_scan" value="0" {if $settings['wxapp_scan'] == '0'} checked=""{/if}> 关闭
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="wxapp_scan" value="1" {if $settings['wxapp_scan']=='1' || $settings['wxapp_scan']==''} checked=""{/if}> 开启
+        </label>
+        <div class="help-block">关闭后，小程序首页将不显示堂食按钮</div>
+    </div>
+</div>
+<div class="wxapp-scan" {if $settings['wxapp_scan']=='0'}style="display:none"{/if}>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">堂食按钮文字</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="wxapp_scan_name" value="{php echo empty($settings['wxapp_scan_name']) ? '堂食' : $settings['wxapp_scan_name']}">
+        <div class="help-block">默认为：堂食</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">堂食按钮颜色</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_color('wxapp_scan_color',empty($settings['wxapp_scan_color']) ? '#ffa1a1' : $settings['wxapp_scan_color']);}
+        <div class="help-block">默认为：#ffa1a1</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">堂食简介</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="wxapp_scan_intro" value="{php echo empty($settings['wxapp_scan_intro']) ? '点我扫码进入' : $settings['wxapp_scan_intro']}">
+        <div class="help-block">默认为：点我扫码进入</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">堂食logo</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_image('wxapp_scan_logo',$settings['wxapp_scan_logo']);}
+        <div class="help-block">不填则显示默认logo，为了美观，建议使用正方形图片</div>
+    </div>
+</div>
+</div>
+<div style="height: 1px;width: 100%;background: #eeeeee;margin-bottom: 10px;"></div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示自取按钮</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="wxapp_getself" value="0" {if $settings['wxapp_getself'] == '0'} checked=""{/if}> 不显示
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="wxapp_getself" value="1" {if $settings['wxapp_getself']=='1' || $settings['wxapp_getself']==''} checked=""{/if}> 显示
+        </label>
+        <div class="help-block">关闭后，小程序首页将不显示自取按钮</div>
+    </div>
+</div>
+<div class="wxapp-getself" {if $settings['wxapp_getself']=='0'}style="display:none"{/if}>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">自取按钮文字</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="wxapp_getself_name" value="{php echo empty($settings['wxapp_getself_name']) ? '自取' : $settings['wxapp_getself_name']}">
+        <div class="help-block">默认为：自取</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">自取按钮颜色</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_color('wxapp_getself_color',empty($settings['wxapp_getself_color']) ? '#76bdef' : $settings['wxapp_getself_color']);}
+        <div class="help-block">默认为：#76bdef</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">自取简介</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="wxapp_getself_intro" value="{php echo empty($settings['wxapp_getself_intro']) ? '点我开始订餐' : $settings['wxapp_getself_intro']}">
+        <div class="help-block">默认为：点我开始订餐</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">自取logo</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_image('wxapp_getself_logo',$settings['wxapp_getself_logo']);}
+        <div class="help-block">不填则显示默认logo，为了美观，建议使用正方形图片</div>
+    </div>
+</div>
+</div>
+<div style="height: 1px;width: 100%;background: #eeeeee;margin-bottom: 10px;"></div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启外卖模式</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="wxapp_takeout" value="0" {if $settings['wxapp_takeout'] == '0'} checked=""{/if}> 关闭
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="wxapp_takeout" value="1" {if $settings['wxapp_takeout']=='1' || $settings['wxapp_takeout']==''} checked=""{/if}> 开启
+        </label>
+        <div class="help-block">关闭后，小程序首页将不显示外卖按钮</div>
+    </div>
+</div>
+<div class="wxapp-takeout" {if $settings['wxapp_takeout']=='0'}style="display:none"{/if}>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">外卖按钮文字</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="wxapp_takeout_name" value="{php echo empty($settings['wxapp_takeout_name']) ? '外卖' : $settings['wxapp_takeout_name']}">
+        <div class="help-block">默认为：外卖</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">外卖按钮颜色</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_color('wxapp_takeout_color',empty($settings['wxapp_takeout_color']) ? '#faa040' : $settings['wxapp_takeout_color']);}
+        <div class="help-block">默认为：#faa040</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">外卖简介</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="wxapp_takeout_intro" value="{php echo empty($settings['wxapp_takeout_intro']) ? '点餐快速配送' : $settings['wxapp_takeout_intro']}">
+        <div class="help-block">默认为：点餐快速配送</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">外卖logo</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_image('wxapp_takeout_logo',$settings['wxapp_takeout_logo']);}
+        <div class="help-block">不填则显示默认logo，为了美观，建议使用正方形图片</div>
+    </div>
+</div>
+</div>
+<div class="form-group col-sm-12">
+    <input type="hidden" name="id" value="{$store['id']}" />
+    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+<script type="text/javascript">
+$('input[name=wxapp_scan]').click(function(){
+    var wxappScan = $(this).val();
+    if(wxappScan == 1){
+        $('.wxapp-scan').show();
+    }else{
+        $('.wxapp-scan').hide();
+    }
+});
+$('input[name=wxapp_getself]').click(function(){
+    var wxappGetself = $(this).val();
+    if(wxappGetself == 1){
+        $('.wxapp-getself').show();
+    }else{
+        $('.wxapp-getself').hide();
+    }
+});
+$('input[name=wxapp_takeout]').click(function(){
+    var wxappTakeout = $(this).val();
+    if(wxappTakeout == 1){
+        $('.wxapp-takeout').show();
+    }else{
+        $('.wxapp-takeout').hide();
+    }
+});
+</script>
+{elseif $operation == 'message'}
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启订阅消息</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="template_status" value="0" {if empty($settings['template_status'])} checked=""{/if}> 关闭
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="template_status" value="1" {if $settings['template_status']=='1'} checked=""{/if}> 开启
+        </label>
+        <div class="help-block">开启后，用户支付成功后给用户推送订阅消息</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>下单成功模板id</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="template_id" value="{$settings['template_id']}">
+        <div class="help-block">标题：下单成功通知</div>
+        <div class="help-block">关键词：取餐码(number)、订单类型、门店名称、温馨提示（顺序请勿打乱）</div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">取餐码参数类型id</div>
+                    <input type="text" name="template_id_param[]" class="form-control" placeholder="如：number1" value="{$settings['template_id_param'][0]}">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">订单类型参数类型id</div>
+                    <input type="text" name="template_id_param[]" class="form-control" placeholder="如：phrase1" value="{$settings['template_id_param'][1]}">
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">门店名称参数类型id</div>
+                    <input type="text" name="template_id_param[]" class="form-control" placeholder="如：thing1" value="{$settings['template_id_param'][2]}">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">温馨提示参数类型id</div>
+                    <input type="text" name="template_id_param[]" class="form-control" placeholder="如：thing1" value="{$settings['template_id_param'][3]}">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>取餐提醒模板id</label>
+        <div class="col-sm-9 col-xs-12">
+            <input class="form-control" type="text" name="get_food_template_id" value="{$settings['get_food_template_id']}">
+            <div class="help-block">标题：取餐提醒</div>
+            <div class="help-block">关键词：取餐码、点餐时间、门店名称、温馨提醒（顺序请勿打乱）</div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <div class="input-group-addon">取餐码参数类型id</div>
+                        <input type="text" name="get_food_template_id_param[]" class="form-control" placeholder="如：number1" value="{$settings['get_food_template_id_param'][0]}">
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <div class="input-group-addon">点餐时间参数类型id</div>
+                        <input type="text" name="get_food_template_id_param[]" class="form-control" placeholder="如：date1" value="{$settings['get_food_template_id_param'][1]}">
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 10px;">
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <div class="input-group-addon">门店名称参数类型id</div>
+                        <input type="text" name="get_food_template_id_param[]" class="form-control" placeholder="如：thing1" value="{$settings['get_food_template_id_param'][2]}">
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <div class="input-group-addon">温馨提示参数类型id</div>
+                        <input type="text" name="get_food_template_id_param[]" class="form-control" placeholder="如：thing1" value="{$settings['get_food_template_id_param'][3]}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>外卖下单成功模板id</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="takeout_template_id" value="{$settings['takeout_template_id']}">
+        <div class="help-block">标题：下单成功通知</div>
+        <div class="help-block">关键词：订单状态、订单类型、门店名称、温馨提示（顺序请勿打乱）</div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">订单状态参数类型id</div>
+                    <input type="text" name="takeout_template_id_param[]" class="form-control" placeholder="如：phrase1" value="{$settings['takeout_template_id_param'][0]}">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">订单类型参数类型id</div>
+                    <input type="text" name="takeout_template_id_param[]" class="form-control" placeholder="如：phrase1" value="{$settings['takeout_template_id_param'][1]}">
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">门店名称参数类型id</div>
+                    <input type="text" name="takeout_template_id_param[]" class="form-control" placeholder="如：thing1" value="{$settings['takeout_template_id_param'][2]}">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <div class="input-group-addon">温馨提示参数类型id</div>
+                    <input type="text" name="takeout_template_id_param[]" class="form-control" placeholder="如：thing1" value="{$settings['takeout_template_id_param'][3]}">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">短信提醒商家</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="sms_status" value="0" {if empty($settings['sms_status'])} checked=""{/if}> 关闭
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="sms_status" value="1" {if $settings['sms_status']=='1'} checked=""{/if}> 开启
+        </label>
+        <div class="help-block">开启后，用户支付成功后给商家发送订单短信提醒</div>
+    </div>
+</div>
+<div class="sms-status" {if empty($settings['sms_status'])} style="display: none" {/if}>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">短信接口服务商</label>
+        <div class="col-sm-9 col-xs-12">
+            <label class="radio-inline">
+                <input type="radio" name="sms_type" value="1" {if $settings['sms_type']=='1' || empty($settings['sms_type'])} checked=""{/if}> 阿里云
+            </label>
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">App Key</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="sms_params[ali][appkey]" class="form-control" value="{$settings['sms_params']['ali']['appkey']}" />
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">App Secret</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="sms_params[ali][secret]" class="form-control" value="{$settings['sms_params']['ali']['secret']}" />
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">短信签名</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="sms_params[ali][signname]" class="form-control" value="{$settings['sms_params']['ali']['signname']}" />
+            <div class="help-block">请确保使用的短信签名已通过审核</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">短信模板id</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="sms_params[ali][templateCode]" class="form-control" value="{$settings['sms_params']['ali']['templateCode']}" />
+            <div class="help-block">申请的短信模板格式为：<font color="red">${##storename##}</font>，您有新的订单，请及时处理！</div>
+            <div class="help-block">模板类型请选短信通知，红色部分必须存在且不能修改！请确保使用短信模板id已通过审核</div>
+        </div>
+    </div>
+   
+</div>
+<div class="form-group col-sm-12">
+    <input type="hidden" name="id" value="{$store['id']}" />
+    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+<script type="text/javascript">
+$('input[name=sms_status]').click(function(){
+    var smsStatus = $(this).val();
+    if(smsStatus == 1){
+        $('.sms-status').show();
+    }else{
+        $('.sms-status').hide();
+    }
+});
+</script>
+{elseif $operation == 'bell'}
+<div class="alert bg-light-gray">
+    <p><i class="wi wi-info-sign color-default"></i>请到<a class="text-primary" href="http://ai.baidu.com/" target="_blank">百度AI开放平台</a>上创建语音合成应用</p>
+</div>
+<form action="" method="post" class="form-horizontal form" id="form">
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">APP ID</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="bell[appid]" class="form-control" value="{$settings['bell_settings']['appid']}" />
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">API KEY</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="bell[apikey]" class="form-control" value="{$settings['bell_settings']['apikey']}" />
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">SECRET KEY</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="bell[secretkey]" class="form-control" value="{$settings['bell_settings']['secretkey']}" />
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">取餐语音文字</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class="input-group">
+                <input type="text" name="bell[getfood_front]" class="form-control" value="{$settings['bell_settings']['getfood_front']}"/>
+                <div class="input-group-addon">A001</div>
+                <input type="text" name="bell[getfood_behind]" class="form-control" value="{$settings['bell_settings']['getfood_behind']}"/>
+            </div>
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">呼叫服务员功能</label>
+        <div class="col-sm-9 col-xs-12">
+            <label class="radio-inline">
+                <input type="radio" name="bell[call_waiter]" value="0" {if empty($settings['bell_settings']['call_waiter'])} checked=""{/if}> 关闭
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="bell[call_waiter]" value="1" {if $settings['bell_settings']['call_waiter']=='1'} checked=""{/if}> 开启
+            </label>
+            <div class="help-block">开启后，扫桌号点餐客户可以使用呼叫服务员功能。</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">呼叫服务员语音文字</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class="input-group">
+                <input type="text" name="bell[getwaiter_front]" class="form-control" value="{$settings['bell_settings']['getwaiter_front']}"/>
+                <div class="input-group-addon">[桌号名称]</div>
+                <input type="text" name="bell[getwaiter_behind]" class="form-control" value="{$settings['bell_settings']['getwaiter_behind']}"/>
+            </div>
+            <div class="help-block">如：[桌号名称]客人呼叫服务员。</div>
+        </div>
+    </div>
+<div class="form-group col-sm-12">
+    <input type="hidden" name="id" value="{$store['id']}" />
+    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+{elseif $operation == 'payset'}
+<ul class="we7-page-tab" style="margin-left: -20px;">
+    <li {if $operation == 'payset' && $method == 'payment'}class="active"{/if}><a href="{php echo $this->createWebUrl('settings', array('op' => 'payset','method'=>'payment'))}">支付设置</a></li>
+</ul>
+{if $method == 'payment'}
+<table class="table we7-table table-hover table-form">
+        <colgroup><col width="140px ">
+        <col width="400px">
+        <col width="140px">
+        </colgroup><tbody><tr>
+            <th colspan="3">支付参数</th>
+        </tr>
+        <tr>
+            <td>
+                微信支付
+            </td>
+            <td>
+                <div class="related-info">
+                    <div>接口类型:新版</div>
+                    <div>支付账号:{$_W['uniaccount']['name']}</div>
+                </div>
+            </td>
+            <td class="text-right">
+                <div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#weixin">去配置</a></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                服务商支付
+            </td>
+            <td>
+                <div class="related-info">
+                    {if $pay_setting['wechat_facilitator']['status'] == '1'}
+                    已开启
+                    {else}
+                    未开启
+                    {/if}
+                </div>
+            </td>
+            <td class="text-right">
+                <div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#wechat_fa">去配置</a></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                余额支付
+            </td>
+            <td>
+                <div class="related-info">
+                    <div>开通后，小程序端可进行充值并支付订单</div>
+                </div>
+            </td>
+            <td class="text-center pull-right">
+                <div class="switch {if $settings['sets']['open_banlance']}switchOn{/if} postBlanceBtn" data-status="{php echo intval($settings['sets']['open_banlance'])}"></div>
+            </td>
+        </tr>
+        <!-- <tr>
+            <td>
+                支付宝支付
+            </td>
+            <td>
+                <div class="related-info">
+                    <div class="text-danger">未配置</div>
+                    <div>支持:收银台收款</div>
+                </div>
+            </td>
+            <td class="text-center">
+                <div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#alipay">修改</a></div>
+            </td>
+        </tr> -->
+    </tbody>
+</table>
+<script type="text/javascript">
+$(function(){
+    $('.postBlanceBtn').on("click",function(){
+        var _self = this;
+        if($(_self).hasClass('switchOn')){
+            $(_self).removeClass('switchOn');
+        }else{
+            $(_self).addClass('switchOn');
+        }
+        $.ajax({
+            type: "post",
+            dataType: "json",
+            url: "{php echo $this->createWebUrl('settings',array('op' => 'payset', 'method' => 'post_balance'))}",
+            cache: false,
+            data: null, 
+            success: function(res){
+                util.message(res.result.message,"","success")
+                
+            }
+        });
+    })
+})
+</script>
+<!-- 支付宝支付 -->
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="modal fade" id="alipay" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="we7-modal-dialog modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <div class="modal-title">支付宝支付</div>
+            </div>
+            <div class="modal-body">
+                <div class="we7-form">
+                    <div>
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="submit" name="wechat_submit" value="确定" class="btn btn-primary" />
+                <input type="hidden" name="token" value="{$_W['token']}" />
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+<!--微信服务商-->
+<form action="" method="post" class="form-horizontal form" id="form2" enctype="multipart/form-data">
+    <div class="modal fade" id="wechat_fa" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="we7-modal-dialog modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <div class="modal-title">微信服务商支付</div>
+                </div>
+                <div class="modal-body" style="padding: 0 30px;">
+                    <div class="we7-form">
+                        <div>
+                            <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief"">
+                                <ul class="layui-tab-title">
+                                    <li class="layui-this">参数设置</li>
+                                    <li>证书设置</li>
+                                </ul>
+                                <div class="layui-tab-content">
+                                    <div class="layui-tab-item layui-show">
+                                        <div class="form-group">
+                                            <label for="" class="control-label col-sm-2">服务商支付</label>
+                                            <div class="form-controls col-sm-10">
+                                                <input id='radio-111' type="radio" name='wechat_fa[status]' value="1" {if $pay_setting['wechat_facilitator']['status'] == '1'} checked=""{/if}/>
+                                                <label for="radio-111">开启 </label>
+                                                <input id='radio-222' type="radio" name='wechat_fa[status]' value="0" {if $pay_setting['wechat_facilitator']['status'] == '' || $pay_setting['wechat_facilitator']['status'] == '0'} checked=""{/if}/>
+                                                <label for="radio-222">关闭 </label>
+                                                <span class="help-block">设置为服务商，其他商户可以授权给服务商，让服务商完成支付。</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="" class="control-label col-sm-2">主支付类型</label>
+                                            <div class="form-controls col-sm-10">
+                                                <input id='radio-333' type="radio" name='wechat_fa[main_type]' value="0" {if $pay_setting['wechat_facilitator']['main_type'] == '' || $pay_setting['wechat_facilitator']['main_type'] == '1'} checked=""{/if}/>
+                                                <label for="radio-333">普通商户号 </label>
+                                                <input id='radio-444' type="radio" name='wechat_fa[main_type]' value="1" {if $pay_setting['wechat_facilitator']['main_type'] == '1'} checked=""{/if}/>
+                                                <label for="radio-444">服务商子商户号 </label>
+                                                <span class="help-block">主支付指统一设置的微信支付。如主支付的商户号为该服务商的子商户，则选择"服务商子商户号"。</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="" class="control-label col-sm-2">服务商公众号(AppId)</label>
+                                            <div class="form-controls col-sm-10">
+                                                <input name="wechat_fa[appid]" class="form-control" value="{$pay_setting['wechat_facilitator']['appid']}" placeholder="" >
+                                                <span class="help-block"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="" class="control-label col-sm-2">服务商商户号</label>
+                                            <div class="form-controls col-sm-10">
+                                                <input name="wechat_fa[mchid]" class="form-control" value="{$pay_setting['wechat_facilitator']['mchid']}" placeholder="" >
+                                                <span class="help-block">需要填写申请为服务商的商户号。注：服务商的商户号与微信支付的商户号不是同一个号。</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="" class="control-label col-sm-2">商户支付密钥</label>
+                                            <div class="form-controls col-sm-10">
+                                                <input type="text" name="wechat_fa[signkey]" class="form-control" value="{$pay_setting['wechat_facilitator']['signkey']}" placeholder="">
+                                                <span class="help-block">此商户秘钥为服务商商户号对应的支付秘钥，与微信支付的支付秘钥不相同。</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-tab-item">
+                                        <div class="form-group">
+                                            <label class="col-xs-12 col-sm-3 col-md-2 control-label">CERT证书文件</label>
+                                            <div class="col-sm-9 col-xs-12">
+                                                <input type="file" id="cert" name="cert">
+                                                <div class="help-block">
+                                                    {if empty($pay_setting['wechat_facilitator']['wechat_refund']['cert'])}
+                                                    <span class="layui-badge" style="margin-right: 5px;">未上传</span>
+                                                    {else}
+                                                    <span class="layui-badge layui-bg-blue" style="margin-right: 5px;">已上传</span>
+                                                    {/if}
+                                                    下载服务商证书 cert.zip 中的 apiclient_cert.pem 文件
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-xs-12 col-sm-3 col-md-2 control-label">KEY密钥文件</label>
+                                            <div class="col-sm-9 col-xs-12">
+                                                <input type="file" id="key" name="key">
+                                                <div class="help-block">
+                                                    {if empty($pay_setting['wechat_facilitator']['wechat_refund']['key'])}
+                                                    <span class="layui-badge" style="margin-right: 5px;">未上传</span>
+                                                    {else}
+                                                    <span class="layui-badge layui-bg-blue" style="margin-right: 5px;">已上传</span>
+                                                    {/if}
+                                                    下载服务商证书 cert.zip 中的 apiclient_key.pem 文件
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="wechat_fa_submit" value="确定" class="btn btn-primary" />
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- 微信支付 -->
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="modal fade" id="weixin" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="we7-modal-dialog modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <div class="modal-title">微信支付</div>
+            </div>
+            <div class="modal-body">
+                <div class="we7-form">
+                    <div>
+                        <div class="form-group">
+                            <label for="" class="control-label col-sm-2">身份标识<br>(appId)</label>
+                            <div class="form-controls col-sm-10">
+                                <input type="text" name="" disabled class="form-control" value="{$_W['account']['key']}" placeholder="">
+                                <span class="help-block">
+                                    公众号身份标识
+                                    <a href="./index.php?c=account&amp;a=post&amp;uniacid=2">
+                                        请通过修改公众号信息来保存
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="" class="control-label col-sm-2">身份密钥<br>(appSecret)</label>
+                            <div class="form-controls col-sm-10">
+                                <input type="text" disabled  value="{$_W['account']['secret']}" name="" class="form-control" placeholder="">
+                                <span class="help-block">公众平台API(参考文档API 接口部分)的权限获取所需密钥Key
+                                    <a href="./index.php?c=account&amp;a=post&amp;uniacid={$_W['uniacid']}">
+                                        请通过修改公众号信息来保存
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="form-group">
+                                <label for="" class="control-label col-sm-2">微信支付商户号</label>
+                                <div class="form-controls col-sm-10">
+                                    <input type="text" name="wechat[mchid]" value="{$pay_setting['wechat']['mchid']}" class="form-control" placeholder="">
+                                    <span class="help-block">
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="" class="control-label col-sm-2">微信支付秘钥</label>
+                                <div class="form-controls col-sm-10">
+                                    <input type="text" name="wechat[signkey]" value="{$pay_setting['wechat']['signkey']}" class="form-control" placeholder="">
+                                    <span class="help-block">
+                                        微信支付商户权限密钥
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="submit" name="wechat_submit" value="确定" class="btn btn-primary" />
+                <input type="hidden" name="token" value="{$_W['token']}" />
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+<!-- <div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>支付类型</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="payset[wechat][type]" value="0" {if empty($settings['payset']['wechat']['type'])} checked=""{/if}> 普通微信支付
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="payset[wechat][type]" value="1" {if $settings['payset']['wechat']['type']=='1'} checked=""{/if}> 微信服务商支付
+        </label>
+        <div class="help-block"></div>
+    </div>
+</div> -->
+<script>
+    //注意：选项卡 依赖 element 模块，否则无法进行功能性操作
+    layui.use('element', function(){
+        var element = layui.element;
+
+        //…
+    });
+</script>
+{/if}
+{elseif $operation == 'system'}
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>门店数量上限</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="store_count" value="{$settings['store_count']}">
+        <div class="help-block">留空或设置为0则无限制</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>底部技术支持</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="copyright" value="{$settings['copyright']}">
+        <div class="help-block">留空不显示</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>门店操作台logo</label>
+    <div class="col-sm-9 col-xs-12">
+        {php echo tpl_form_field_image('login_logo',$settings['login_logo']);}
+        <div class="help-block">留空显示默认图标，建议设置正方形图片</div>
+    </div>
+</div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>清除已有小程序码</label>
+        <div class="col-sm-9 col-xs-12">
+            <div style="width: 100%;overflow: hidden"><div class="btn btn-warning col-lg-1 clearQrcode">立即清除</div></div>
+            <div class="help-block">清除后重新保存门店信息/桌号信息后将会重新生成新的小程序码</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>小程序码线条颜色</label>
+        <div class="col-sm-9 col-xs-12">
+            <label class="radio-inline">
+                <input type="radio" name="wxacode_color" value="0" {if empty($settings['wxacode_color'])} checked=""{/if}> 自动配置
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="wxacode_color" value="1" {if $settings['wxacode_color']=='1'} checked=""{/if}> 默认黑色
+            </label>
+            <div class="help-block"></div>
+        </div>
+    </div>
+<!--<div class="form-group">-->
+    <!--<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>门店操作台登陆页背景</label>-->
+    <!--<div class="col-sm-9 col-xs-12">-->
+        <!--{php tpl_form_field_image('login_bg',$settings['login_bg']);}-->
+        <!--<div class="help-block">留空显示默认颜色，建议尺寸1440px*900px</div>-->
+    <!--</div>-->
+<!--</div>-->
+<div class="form-group col-sm-12">
+    <input type="hidden" name="id" value="{$store['id']}" />
+    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+<script type="application/javascript">
+    layui.use('layer', function(){
+        var layer = layui.layer;
+        $('.clearQrcode').on("click", function () {
+            var index;
+            jQuery.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{php echo $this->createWebUrl('settings',array('op'=>'clear_qrcode'))}",
+                cache: false,
+                data: {
+                    token: "{$_W['token']}"
+                },
+                beforeSend: function(){
+                    index = layer.load();
+                },
+                success: function(res3){
+                    layer.close(index);
+                    layer.msg("已全部清除");
+                }
+            });
+        });
+
+    });
+
+</script>
+{elseif $operation == 'advertisement'}
+<div class="alert bg-light-gray">
+    <p><i class="wi wi-info-sign color-default"></i>1、小程序后台创建广告位；</p>
+    <p><i class="wi wi-info-sign color-default"></i>2、获取广告代码里的unit-id值；</p>
+    <p><i class="wi wi-info-sign color-default"></i>如广告代码为：“&#60;&#97;&#100;&#32;&#117;&#110;&#105;&#116;&#45;&#105;&#100;&#61;&#34;&#97;&#100;&#117;&#110;&#105;&#116;&#45;&#52;&#51;&#57;&#55;&#102;&#55;&#98;&#56;&#99;&#51;&#102;&#55;&#52;&#49;&#101;&#51;&#34;&#62;&#60;&#47;&#97;&#100;&#62;”，则unit-id值为“adunit-4397f7b8c3f741e3”</p>
+</div>
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">首页底部悬浮广告</label>
+    <div class="col-sm-9 col-xs-12">
+        <div class="input-group">
+            <div class="input-group-addon"><input type="checkbox" name="ad[index_bottom_0][status]" value="1" {if $advertisement['index_bottom_0']['status']} checked="" {/if}> 开启</div>
+            <input type="text" class="form-control" name="ad[index_bottom_0][unit_id]" value="{$advertisement['index_bottom_0']['unit_id']}" placeholder="请输入广告unit-id值">
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">首页底部广告</label>
+    <div class="col-sm-9 col-xs-12">
+        <div class="input-group">
+            <div class="input-group-addon"><input type="checkbox" name="ad[index_bottom_1][status]" value="1" {if $advertisement['index_bottom_1']['status']} checked="" {/if}> 开启</div>
+            <input type="text" class="form-control" name="ad[index_bottom_1][unit_id]" value="{$advertisement['index_bottom_1']['unit_id']}" placeholder="请输入广告unit-id值">
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-xs-12 col-sm-3 col-md-2"></div>
+    <div class="col-sm-9 col-xs-12">
+        <input type="hidden" name="id" value="{$store['id']}" />
+        <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+        <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+</div>
+</form>
+{elseif $operation == 'deliver'}
+<ul class="we7-page-tab" style="margin-left: -20px;">
+    <li {if $operation == 'deliver' && $method == 'dada'}class="active"{/if}><a href="{php echo $this->createWebUrl('settings', array('op' => 'deliver','method'=>'dada'))}">达达配送</a></li>
+    <li style="display: none" {if $operation == 'deliver' && $method == 'fengniao'}class="active"{/if}><a href="{php echo $this->createWebUrl('settings', array('op' => 'deliver','method'=>'fengniao'))}">蜂鸟配送</a></li>
+</ul>
+{if $method == 'dada'}
+<form action="" method="post" class="form-horizontal form" id="form">
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启达达配送</label>
+    <div class="col-sm-9 col-xs-12">
+        <label class="radio-inline">
+            <input type="radio" name="deliver_dada_status" value="0" {if empty($settings['deliver_dada_status'])} checked=""{/if}> 关闭
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="deliver_dada_status" value="1" {if $settings['deliver_dada_status']=='1'} checked=""{/if}> 开启
+        </label>
+        <div class="help-block">开启后，可在门店中设置选择该配送模式</div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span>开发者app_key</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="deliver_dada_app_key" value="{$settings['deliver_dada_app_key']}">
+        <div class="help-block"></div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span>开发者app_secret</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="deliver_dada_app_secret" value="{$settings['deliver_dada_app_secret']}">
+        <div class="help-block"></div>
+    </div>
+</div>
+<div class="form-group">
+    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span>商户id</label>
+    <div class="col-sm-9 col-xs-12">
+        <input class="form-control" type="text" name="deliver_dada_shopid" value="{$settings['deliver_dada_shopid']}">
+        <div class="help-block">注册后需绑定到开发者账号里面</div>
+    </div>
+</div>
+<div class="form-group col-sm-12">
+    <input type="hidden" name="id" value="{$store['id']}" />
+    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+{/if}
+{/if}
+</div>
+</div>
+{template 'system/common/footer'}

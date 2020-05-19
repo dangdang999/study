@@ -1,0 +1,39 @@
+{mtemplate '_header_base'}
+{if !empty($_W['deam_food']['manage']['uid'])}
+{if $action != 'desktop'}
+<nav class="dm-navbar">
+	<div class="logo">
+		<img src="{if empty($settings['login_logo'])}{$dmSiteroot}addons/deam_food/icon.jpg{else}{media $settings['login_logo']}{/if}">
+	</div>
+	<ul>
+		{loop $frams $fram}
+
+		<li class="{$fram['active']}">
+	        <a href="{$fram['href']}" target="{$fram['target']}">
+	            <i class="{$fram['icon']}"></i>
+	            <span class="nav-label">{$fram['title']}</span>
+	        </a>
+	    </li>
+	    {/loop}
+	</ul>
+</nav>
+{/if}
+<!--topnav-->
+<div class="dm-navbar-header ac-{$action}">
+	<ul>
+		<span class="store-name">{$storeinfo['name']}</span>
+
+		<li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{$_W['deam_food']['manage']['username']}<span class="deam-icondown"></span></a>
+            <ul class="dropdown-menu">
+                <!-- <li class="divider"></li> -->
+                <li><a onclick="return confirm('确定退出登录？');return false;" href="{php echo manage_url(array('r'=>'user','ac'=>'logout'))}"> 退出登录</a></li>
+            </ul>
+        </li>
+		<li data-toggle="tooltip" data-placement="bottom" data-original-title="订单核销">
+			<a target="_blank" href="{php echo manage_url(array('r'=>'bell','ac'=>'show_number'))}"><i class="icon icon-Scan-code" style="font-size: 22px;"></i></a>
+		</li>
+	</ul>
+</div>
+
+{/if}

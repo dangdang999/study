@@ -1,0 +1,390 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">门店操作台</div>
+    <ul>
+        <li><a href="{php echo $this->createWebUrl('manage',array('is_admin' => '1'))}">登录入口</a></li>
+        <li class="active"><a href="{php echo $this->createWebUrl('operator')}">店员管理</a></li>
+        
+    </ul>
+</div>
+<div class="dm-container">
+<div class="dm-content">
+<div class="clearfix">
+
+{if $operation == 'display'}
+<div style="margin-bottom: 15px;">
+    <a href="{php echo $this->createWebUrl('operator', array('op' => 'post'))}" class="layui-btn layui-btn-normal layui-btn-sm">+添加店员</a>
+</div>
+<div class="table-responsive">
+	<table class="table we7-table table-hover">
+		<thead>
+		<tr>
+			<!-- <th style="width:40px;">
+				<input type="checkbox" name="checkall" value="" id="checkall" onclick="var ck = this.checked; $(':checkbox').each(function(){this.checked = ck});"/>
+			</th> -->
+			<th>登录ID</th>
+			<th class="text-center">账号信息</th>
+			<th class="text-center">所属门店</th>
+			<th class="text-center">状态</th>
+			<th style="width:140px;" class="text-center">操作</th>
+		</tr>
+		</thead>
+		<tbody>
+		{if empty($list)}
+		<tr><td colspan="5" style="text-align:center">还未添加店员！</td></tr>
+		{else}
+		{loop $list $item}
+		<tr>
+			<!-- <td><input type="checkbox" name="items[]" value="{$item['id']}" class="items" /></td> -->
+			<td>{$item['name']}</td>
+			<td class="text-center">{$item['realname']}<br>{$item['telphone']}</td>
+			<td class="text-center">{$storeArr[$item['store_id']]['name']}</td>
+			<td class="text-center">
+            {if empty($item['system_uid'])}
+            <span class="label label-danger">失效</span>
+            {else}
+                {if empty($item['status'])}<span class="label label-danger">禁用</span>{else}<span class="label label-success">正常</span>{/if}
+            {/if}
+            </td>
+			<td class="text-center">
+                {if !empty($item['system_uid'])}
+				<a href="{php echo $this->createWebUrl('operator', array('id' => $item['id'], 'op' => 'post'))}" class="btn showtitle btn-default btn-sm" title="编辑店员"><i class="fa fa-edit"></i></a>
+                {else}
+                <a href="{php echo $this->createWebUrl('operator', array('id' => $item['id'], 'op' => 'recover'))}" class="btn showtitle btn-default btn-sm" title="修复账号"><i class="fa fa-refresh"></i></a>
+                {/if}
+                <a href="{php echo $this->createWebUrl('operator', array('id' => $item['id'], 'op' => 'delete'))}" class="btn showtitle btn-default btn-sm" title="删除" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-trash"></i></a>
+			</td>
+		</tr>
+		{/loop}
+		{/if}
+		</tbody>
+	</table>
+    {$pager}
+</div>
+<script type="text/javascript">
+	require(['bootstrap'], function ($) {
+        $('.showimg').hover(function () {
+            $(this).popover('show');
+        }, function () {
+            $(this).popover('hide');
+        });
+        $('.showtitle').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+        $('.showpop').on('shown.bs.popover', function () {
+            $('.showpop').not(this).popover('hide');
+        });
+        $('[data-toggle="popover"]').popover("destroy").popover({
+            container: $(document.body)
+        });
+    });
+</script>
+{elseif $operation == 'post'}
+<style type="text/css">
+a:hover, a:link, a:visited {
+    text-decoration: none;
+}
+.btn-link:hover, .btn-link:focus, .btn-link:active, .btn-link.active, .open .dropdown-toggle.btn-link {
+    color: #44abf7;
+    text-decoration: none;
+    border: 1px solid #44abf7;
+}
+.btn-sm {
+    display: inline-block;
+    padding: 7px 8px;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 1;
+    color: #fff;
+    background: #dddddd;
+    text-align: center;
+    vertical-align: middle;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    cursor: pointer;
+    -webkit-transition: background-color 0.3s;
+    -moz-transition: background-color 0.3s;
+    transition: background-color 0.3s;
+}
+.btn-link {
+    color: inherit;
+}
+.checkbox-inline, .radio-inline, .checkbox-inline+.checkbox-inline, .radio-inline+.radio-inline {
+    margin: 0 15px 0 0;
+}
+</style>
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<input type="hidden" name="id" value="{$operator['id']}">
+<input type="hidden" name="system_uid" value="{$operator['system_uid']}">
+{if !empty($operator['id'])}
+<input type="hidden" name="store_id" value="{$operator['store_id']}">
+{/if}
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span class="text-danger">*</span>所属门店</label>
+        <div class="col-md-9">
+            {if !empty($operator['id'])}
+            <input type="text" class="form-control" value="{$storeArr[$operator['store_id']]['name']}" autocomplete="off" readonly=""/>
+            {else}
+            <select class="form-control" name="store_id">
+                {loop $storeArr $storeList}
+                <option value="{$storeList['id']}" {if $operator['store_id'] == $storeList['id']} selected="" {/if}>{$storeList['name']}</option>
+                {/loop}
+            </select>
+            {/if}
+            <div class="help-block">选择门店后将无法更改</div>
+        </div>
+    </div>
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span class="text-danger">*</span>用户名</label>
+		<div class="col-md-9">
+			<input type="text" name="name" class="form-control" value="{$operator['name']}" autocomplete="off" {if !empty($operator['name'])} readonly="" {/if}/>
+			<div class="help-block"></div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span class="text-danger"></span>登录密码</label>
+		<div class="col-md-9">
+			<input type="password" name="password" class="form-control" autocomplete="new-password"/>
+			<div class="help-block">编辑店员时，如无需更改密码，请留空</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span class="text-danger"></span>店员姓名</label>
+		<div class="col-md-9">
+			<input type="text" name="realname" class="form-control" value="{$operator['realname']}" />
+			<div class="help-block"></div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span class="text-danger"></span>店员手机号</label>
+		<div class="col-md-9">
+			<input type="text" name="telphone" class="form-control" value="{$operator['telphone']}" />
+			<div class="help-block"></div>
+		</div>
+	</div>
+	<?php echo base64_decode('5pu05aSa5rqQ56CB6K+36K6/6Zeu6LWE5rqQ6YKm5rqQ56CB572R4oCUd3d3LndhenliLmNvbQ=='); ?>
+	<div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">店员状态</label>
+        <div class="col-md-9">
+            <label class="radio-inline">
+                <input type="radio" name="status" value="1" {if $operator['status'] == '' || $operator['status'] == '1'} checked="" {/if}> 启用
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="status" value="0" {if $operator['status'] == '0'} checked="" {/if}> 禁用
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span class="text-danger"></span>备注</label>
+		<div class="col-md-9">
+			<input type="text" name="remark" class="form-control" value="{$operator['remark']}" />
+			<div class="help-block"></div>
+		</div>
+	</div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">可用权限</label>
+        <div class="col-md-9">
+            <div class="panel-group">
+            	<div class="panel panel-default" style="border-radius: 0px;">
+            		<div class="panel-heading" style="background:#f8f8f8">
+                        
+                        <label class="checkbox-inline">
+							<input type="checkbox" name="perms[]" value="store" class="perm-all" {if @in_array('store',$perms)} checked="" {/if} data-group="store"> 门店管理
+                        </label>
+                    </div>
+                    <div class="panel-body perm-group">
+                		<div class="perm">
+                			<div class="col-sm-2" style="white-space:nowrap;">
+                				<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_store',$perms)} checked="" {/if} data-group="store" data-parent="info" data-son="text" value="store_store" class="perm-all-item"><b>门店信息</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_store_view',$perms)} checked="" {/if} data-group="store" data-parent="info" data-son="view" value="store_store_view" class="perm-item">查看内容</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_store_edit',$perms)} checked="" {/if} data-group="store" data-parent="info" data-son="edit" value="store_store_edit" class="perm-item">编辑</label>
+                            </div>
+                		</div>
+                		<div class="perm">
+                			<div class="col-sm-2" style="white-space:nowrap;">
+                				<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_goods',$perms)} checked="" {/if} data-group="store" data-parent="goods" data-son="text" value="store_goods" class="perm-all-item"><b>商品管理</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                            	<!-- <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_goods_view',$perms)} checked="" {/if} data-group="store" data-parent="goods" data-son="view" value="store_goods_view" class="perm-item">查看详情</label> -->
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_goods_add',$perms)} checked="" {/if} data-group="store" data-parent="goods" data-son="add" value="store_goods_add" class="perm-item">添加</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_goods_edit',$perms)} checked="" {/if} data-group="store" data-parent="goods" data-son="edit" value="store_goods_edit" class="perm-item">编辑</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_goods_delete',$perms)} checked="" {/if} data-group="store" data-parent="goods" data-son="delete" value="store_goods_delete" class="perm-item">删除</label>
+                            </div>
+                		</div>
+                		<div class="perm">
+                			<div class="col-sm-2" style="white-space:nowrap;">
+                				<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_class',$perms)} checked="" {/if} data-group="store" data-parent="class" data-son="text" value="store_class" class="perm-all-item"><b>商品分类</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_class_add',$perms)} checked="" {/if} data-group="store" data-parent="class" data-son="add" value="store_class_add" class="perm-item">添加</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_class_edit',$perms)} checked="" {/if} data-group="store" data-parent="class" data-son="edit" value="store_class_edit" class="perm-item">编辑</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_class_delete',$perms)} checked="" {/if} data-group="store" data-parent="class" data-son="delete" value="store_class_delete" class="perm-item">删除</label>
+                            </div>
+                		</div>
+                        <div class="perm">
+                            <div class="col-sm-2" style="white-space:nowrap;">
+                                <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_order',$perms)} checked="" {/if} data-group="store" data-parent="order" data-son="text" value="store_order" class="perm-all-item"><b>订单管理</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                                <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_order_view',$perms)} checked="" {/if} data-group="store" data-parent="order" data-son="view" value="store_order_view" class="perm-item">查看订单</label>
+                                <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_order_deal',$perms)} checked="" {/if} data-group="store" data-parent="order" data-son="deal" value="store_order_deal" class="perm-item">处理订单</label>
+                                <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_order_refund',$perms)} checked="" {/if} data-group="store" data-parent="order" data-son="refund" value="store_order_refund" class="perm-item">退款处理</label>
+                                <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_order_cancel',$perms)} checked="" {/if} data-group="store" data-parent="order" data-son="cancel" value="store_order_cancel" class="perm-item">取消订单</label>
+                            </div>
+                        </div>
+                		<div class="perm">
+                			<div class="col-sm-2" style="white-space:nowrap;">
+                				<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_printer',$perms)} checked="" {/if} data-group="store" data-parent="printer" data-son="text" value="store_printer" class="perm-all-item"><b>打印机管理</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_printer_add',$perms)} checked="" {/if} data-group="store" data-parent="printer" data-son="add" value="store_printer_add" class="perm-item">添加</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_printer_edit',$perms)} checked="" {/if} data-group="store" data-parent="printer" data-son="edit" value="store_printer_edit" class="perm-item">编辑</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_printer_delete',$perms)} checked="" {/if} data-group="store" data-parent="printer" data-son="delete" value="store_printer_delete" class="perm-item">删除</label>
+                            </div>
+                		</div>
+                		<div class="perm">
+                			<div class="col-sm-2" style="white-space:nowrap;">
+                				<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_desk',$perms)} checked="" {/if} data-group="store" data-parent="desk" data-son="text" value="store_desk" class="perm-all-item"><b>桌号管理</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_desk_add',$perms)} checked="" {/if} data-group="store" data-parent="desk" data-son="add" value="store_desk_add" class="perm-item">添加</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_desk_edit',$perms)} checked="" {/if} data-group="store" data-parent="desk" data-son="edit" value="store_desk_edit" class="perm-item">编辑</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_desk_delete',$perms)} checked="" {/if} data-group="store" data-parent="desk" data-son="delete" value="store_desk_delete" class="perm-item">删除</label>
+                            </div>
+                		</div>
+                        <div class="perm">
+                            <div class="col-sm-2" style="white-space:nowrap;">
+                                <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_statistics',$perms)} checked="" {/if} data-group="store" data-parent="statistics" data-son="text" value="store_statistics" class="perm-all-item"><b>报表统计</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                                <label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_statistics_show',$perms)} checked="" {/if} data-group="store" data-parent="statistics" data-son="show" value="store_statistics_show" class="perm-item">查看</label>
+                            </div>
+                        </div>
+						<div class="perm">
+							<div class="col-sm-2" style="white-space:nowrap;">
+								<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_members',$perms)} checked="" {/if} data-group="store" data-parent="members" data-son="text" value="store_members" class="perm-all-item"><b>会员管理</b></label>
+							</div>
+							<div class="col-sm-10">
+								<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_members_show',$perms)} checked="" {/if} data-group="store" data-parent="members" data-son="show" value="store_members_show" class="perm-item">查看</label>
+							</div>
+							<div class="col-sm-10">
+								<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_members_edit',$perms)} checked="" {/if} data-group="store" data-parent="members" data-son="edit" value="store_members_edit" class="perm-item">操作（包括积分、余额）</label>
+							</div>
+						</div>
+                		<div class="perm" style="display: none">
+                			<div class="col-sm-2" style="white-space:nowrap;">
+                				<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_operator',$perms)} checked="" {/if} data-group="store" data-parent="operator" data-son="text" value="store_operator" class="perm-all-item"><b>店员管理</b></label>
+                            </div>
+                            <div class="col-sm-10">
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_operator_add',$perms)} checked="" {/if} data-group="store" data-parent="operator" data-son="add" value="store_operator_add" class="perm-item">添加</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_operator_add_edit',$perms)} checked="" {/if} data-group="store" data-parent="operator" data-son="edit" value="store_operator_add_edit" class="perm-item">编辑</label>
+                            	<label class="checkbox-inline"><input type="checkbox" name="perms[]" {if @in_array('store_operator_delete',$perms)} checked="" {/if} data-group="store" data-parent="operator" data-son="delete" value="store_operator_delete" class="perm-item">删除</label>
+                            </div>
+                		</div>
+                	</div>
+            	</div>
+            </div>
+        </div>
+    </div>
+	<div class="form-group col-sm-12">
+        <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+        <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+</form>
+<script type="text/javascript">
+$(function(){
+	$('.perm-all').on("click",function(){
+		var _this = this;
+		var group = $(_this).data('group');
+		if($(_this).is(':checked') == true){
+			$("input[data-group="+group+"]").not(".perm-all").prop("checked",true);
+		}else{
+			$("input[data-group="+group+"]").not(".perm-all").prop("checked",false);
+		}
+		
+	});
+	$('.perm-all-item').click(function () {
+        var checked = $(this).get(0).checked;
+        var group = $(this).data('group');
+        var parent = $(this).data('parent');
+        var son = $(this).data('son');
+        var grandson = $(this).data('grandson');
+        $(this).parents(".perm").find(".perm-item").each(function () {
+            $(this).get(0).checked = checked;
+        });
+        group_check(this);
+
+    });
+	$('.perm-item').click(function () {
+        var group = $(this).data('group');
+        var parent = $(this).data('parent');
+        var son = $(this).data('son');
+        var grandson = $(this).data('grandson');
+        var check = false;
+        $(this).closest('.perm').find(".perm-item").each(function () {
+            if ($(this).get(0).checked) {
+                check = true;
+                return false;
+            }
+        });
+        var allitem = $(this).parents(".perm").find(".perm-all-item");
+        if (allitem.length == 1) {
+            allitem.get(0).checked = check;
+        }
+        group_check(this);
+
+    });
+    $(".panel-body").find(".perm").each(function (index, item) {
+        if ($(this).find("label").length != 1) {
+            $($(this).find("label").get(0)).wrap("<div class='col-sm-2' style='white-space:nowrap;'></div>");
+            $($(this).find("label").not($(this).find("label").get(0))).wrapAll("<div class='col-sm-10'></div>");
+        }
+        else {
+            $($(this).find("label").get(0)).wrap("<div class='col-sm-12'></div>");
+        }
+    });
+});
+function group_check(obj) {
+    var check = false;
+    $(obj).parents('.perm-group').find(":checkbox").each(function (index, item) {
+        if (item.checked) {
+            check = true;
+        }
+    });
+    var group = $(obj).eq(0).data('group');
+    $(".perm-all[data-group=" + group + "]").get(0).checked = check;
+}
+$("#form").submit(function(){
+	console.log($("input[name='password']").val().length);
+	if($("input[name='name']").val() == ''){
+		util.message("用户名必填！");
+		return false;
+	}
+	{if empty($id)}
+	if($("input[name='password']").val() == ''){
+		util.message("密码必填！");
+		return false;
+	}
+    {/if}
+	if($("input[name='password']").val() != '' && $("input[name='password']").val().length < 8){
+		util.message("密码至少为8位！");
+		return false;
+	}
+	
+	if($("input[name='perms[]']:checked").length <= 0){
+		util.message("至少选择一个权限");
+		return false;
+	}
+});
+
+</script>
+{/if}
+</div>
+</div>
+</div>
+{template 'system/common/footer'}

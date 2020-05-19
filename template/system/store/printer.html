@@ -1,0 +1,287 @@
+{template 'system/common/header'}
+<div class="dm-subnav">
+    <div class="subnav-title">打印机管理</div>
+    <ul>
+        <li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('printer', array('op' => 'display','store_id'=>$store_id))}">打印机列表</a></li>
+        <li {if $operation == 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('printer', array('op' => 'post','store_id'=>$store_id))}">添加打印机</a></li>
+        {if $operation == 'post' && !empty($id)}<li class="active"><a href="{php echo $this->createWebUrl('printer', array('op' => 'post','id'=>$id,'store_id'=>$store_id))}">编辑打印机</a></li>{/if}
+        
+    </ul>
+</div>
+<div class="dm-container">
+<div class="dm-content">
+<div class="clearfix">
+<div class="we7-page-title">
+	{$storeInfo['name']}
+	<div class="pull-right">
+		<a href="{php echo $this->createWebUrl('store')}" class="btn btn-primary">返回门店列表</a>
+	</div>
+</div>
+{if $operation == 'display'}
+<div class="table-responsive">
+	<table class="table we7-table table-hover">
+		<thead>
+		<tr>
+			<th style="width:40px;">
+				ID
+			</th>
+			<th style="width:200px;">打印机名称</th>
+			<th style="width:180px;">打印机型号</th>
+            <th style="width:150px;">打印类型</th>
+			<th class="text-center" style="width:80px;">状态</th>
+			<th class="text-center" style="width:200px;">操作</th>
+		</tr>
+		</thead>
+		<tbody>
+		{if empty($list)}
+		<tr><td colspan="6" style="text-align:center">还未添加打印机！</td></tr>
+		{else}
+		{loop $list $item}
+		<tr>
+			<td>{$item['id']}</td>
+			<td>{$item['title']}</td>
+            <td><span class="label label-primary">{if $item['type']=='4'}易联云K2S、K3S、K4、M1{elseif $item['type']=='1'}飞鹅打印机{elseif $item['type']=='2'}365 s1{/if}</span></td>
+			<td>{if empty($item['print_type'])}整单打印{else}分单打印{/if}</td>
+			<td class="text-center">{if empty($item['status'])}<span class="label label-danger">未启用</span>{elseif $item['status']=='1'}<span class="label label-success">已启用</span>{/if}</td>
+			<td class="text-center">
+				<a href="{php echo $this->createWebUrl('printer', array('id' => $item['id'], 'op' => 'post','store_id'=>$store_id))}" class="btn showtitle btn-default btn-sm" title="编辑打印机"><i class="fa fa-edit"></i></a>
+                <a href="{php echo $this->createWebUrl('printer', array('id' => $item['id'], 'op' => 'delete','store_id'=>$store_id))}" class="btn showtitle btn-default btn-sm" title="删除打印机" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-times"></i></a>
+			</td>
+		</tr>
+		{/loop}
+		{/if}
+		</tbody>
+	</table>
+    {$pager}
+</div>
+<script type="text/javascript">
+	require(['bootstrap'], function ($) {
+        $('.showimg').hover(function () {
+            $(this).popover('show');
+        }, function () {
+            $(this).popover('hide');
+        });
+        $('.showtitle').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+    });
+</script>
+{elseif $operation == 'post'}
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form">
+<input type="hidden" name="id" value="{$printer['id']}">
+<input type="hidden" name="store_id" value="{$store_id}">
+	<div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>打印机名称</label>
+        <div class="col-sm-9 col-xs-12">
+        	<input type="text" name="title" class="form-control" value="{$printer['title']}">
+        	<div class="help-block">可备注打印机为前台/后厨使用</div>
+       </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">打印机类型</label>
+        <div class="col-sm-9 col-xs-12">
+                <select class="form-control tpl-category-parent" name="type" id="type">
+                    <option value="4" {if $printer['type'] == '4'} selected="" {/if}>易联云K2S、K3S、K4、M1</option>
+                    <option value="1" {if $printer['type'] == '1'} selected="" {/if}>飞鹅打印机</option>
+                    <option value="2" {if $printer['type'] == '2'} selected="" {/if}>365 s1打印机（GPRS版）</option>
+                </select>
+            <div class="help-block">选择打印机类型,目前已支持打印机 : 易联云、飞鹅、365 s1</div>
+            <div class="help-block">如类型列表中没有您的打印机，请联系客服进行协助开发</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">打印类型</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class="input-group">
+                <label class="radio-inline"><input type="radio" name="print_type" value="0" {if empty($printer['print_type'])} checked="" {/if}>整单</label>
+                <label class="radio-inline"><input type="radio" name="print_type" value="1" {if $printer['print_type'] == '1'} checked="" {/if}>分单</label>
+            </div>
+            <div class="help-block">整单打印：一次打印整个订单里的商品列表</div>
+            <div class="help-block">分单打印：订单里的商品每个打印一次</div>
+        </div>
+    </div>
+    <div class="print-class-box" {if empty($printer['print_type'])} style="display: none" {/if}>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">可打印分类</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class="input-group">
+            {loop $class $item}
+                <label class="checkbox-inline"><input type="checkbox" name="print_class[]" value="{$item['id']}" {if empty($print_class) || @in_array($item['id'],$print_class)} checked="" {/if}>{$item['classname']}</label>
+            {/loop}
+            </div>
+            <div class="help-block">如需全打请全选</div>
+        </div>
+    </div>
+    </div>
+    <!--飞鹅打印机-->
+    <div id="printer_feie" class="printer" {if $printer['type'] != '1'}style="display: none"{/if}>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >USER</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_feie[user]" class="form-control" value="{$printer['print_data']['printer_feie']['user']}"/>
+                <span class='help-block'>请至飞鹅打印机官网注册账号，登录后点击个人中心-开发者信息-USER</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >UKEY</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_feie[ukey]" class="form-control" value="{$printer['print_data']['printer_feie']['ukey']}"/>
+                <span class='help-block'>请至飞鹅打印机官网注册账号，登录后点击个人中心-开发者信息-UKEY</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >打印机编号</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_feie[deviceNo]" class="form-control" value="{$printer['print_data']['printer_feie']['deviceNo']}"/>
+                <span class='help-block'>打印机编号9位,查看飞鹅打印机底部贴纸上面的打印机编号</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >打印机密钥</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_feie[key]" class="form-control" value="{$printer['print_data']['printer_feie']['key']}"/>
+                <span class='help-block'>打印机的KEY,打印机的密钥</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >打印联数</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_feie[times]" class="form-control" value="{$printer['print_data']['printer_feie']['times']}"/>
+                <span class='help-block'>同一订单，打印的次数</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >URL</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_feie[url]" class="form-control" value="{php echo empty($printer['print_data']['printer_feie']['url']) ? 'http://api.feieyun.cn/Api/Open/' : $printer['print_data']['printer_feie']['url']}"/>
+                <span class='help-block'>API接口地址默认为：http://api.feieyun.cn/Api/Open/</span>
+            </div>
+        </div>
+    </div>
+    <!--易联云新版-->
+    <div id="printer_yilianyun_new" class="printer"{if $printer['type'] == '4' || empty($printer['type'])}{else}style="display: none"{/if}>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >终端号</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_yilianyun_new[machine_code]" class="form-control" value="{$printer['print_data']['printer_yilianyun_new']['machine_code']}"/>
+                <span class='help-block'>打印机终端号</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >密钥</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_yilianyun_new[msign]" class="form-control" value="{$printer['print_data']['printer_yilianyun_new']['msign']}"/>
+                <span class='help-block'>打印机终端密钥</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >用户ID</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_yilianyun_new[partner]" class="form-control" value="{$printer['print_data']['printer_yilianyun_new']['partner']}"/>
+                <span class='help-block'>用户id（管理中心系统集成里获取）</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >apiKey</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_yilianyun_new[apikey]" class="form-control" value="{$printer['print_data']['printer_yilianyun_new']['apikey']}"/>
+                <span class='help-block'>apiKey（管理中心系统集成里获取）</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >URL</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_yilianyun_new[url]" class="form-control" value="{php echo empty($printer['print_data']['printer_yilianyun_new']['url']) ? 'http://open.10ss.net:8888' : $printer['print_data']['printer_yilianyun_new']['url']}"/>
+                <span class='help-block'>API接口地址</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >打印联数</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_yilianyun_new[times]" class="form-control" value="{$printer['print_data']['printer_yilianyun_new']['times']}"/>
+                <span class='help-block'>同一订单，打印的次数</span>
+            </div>
+        </div>
+    </div>
+    <!--365 s1-->
+    <div id="printer_365s1" class="printer" {if $printer['type'] != '2'}style="display: none"{/if}>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >打印机编号</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_365s1[deviceNo]" class="form-control" value="{$printer['print_data']['printer_365s1']['deviceNo']}"/>
+                <span class='help-block'>打印机编号</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >打印机密钥</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_365s1[key]" class="form-control" value="{$printer['print_data']['printer_365s1']['key']}"/>
+                <span class='help-block'>打印机密钥</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" >打印联数</label>
+            <div class="col-sm-9 title" style='padding-right:0' >
+                <input type="text" name="printer_365s1[times]" class="form-control" value="{$printer['print_data']['printer_365s1']['times']}"/>
+                <span class='help-block'>同一订单，打印的次数</span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">打印机状态</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class="input-group">
+                <label class="radio-inline"><input type="radio" name="status" value="0" {if empty($printer['status'])} checked="" {/if}>未启用</label>
+                <label class="radio-inline"><input type="radio" name="status" value="1" {if $printer['status'] == '1'} checked="" {/if}>启用</label>
+            </div>
+            <div class="help-block"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">核销二维码</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class="input-group">
+                <label class="radio-inline"><input type="radio" name="order_qrcode" value="1" {if $printer['order_qrcode'] == '1'} checked="" {/if}>打印</label>
+                <label class="radio-inline"><input type="radio" name="order_qrcode" value="0" {if empty($printer['order_qrcode'])} checked="" {/if}>不打印</label>
+            </div>
+            <span class='help-block'>该设置仅对整单打印和非外卖订单生效</span>
+        </div>
+    </div>
+    <div class="form-group"></div>
+	<div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary" onclick="return formcheck()">
+            <input type="hidden" name="token" value="{$_W['token']}">
+            <input type="button" name="back" onclick="history.back()" style="margin-left:10px;" value="返回列表" class="btn btn-default">
+    	</div>
+    </div>
+</form>
+<script type="text/javascript">
+$('input[name="print_type"]').on('change',function(){
+    if($(this).val() == '0'){
+        $(".print-class-box").hide();
+    }else{
+        $(".print-class-box").show();
+    }
+})
+$("#type").on('change',function () {
+    var $this = $(this);
+    $(".printer").hide();
+    switch (this.value){
+        case '1':$("#printer_feie").show();break;
+        case '4':$("#printer_yilianyun_new").show();break;
+        case '2':$("#printer_365s1").show();break;
+    }
+});
+</script>
+{/if}
+</div>
+</div>
+</div>
+{template 'system/common/footer'}

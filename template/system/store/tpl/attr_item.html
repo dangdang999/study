@@ -1,0 +1,15 @@
+<div class="attr_item_item" style="float:left;margin:5px;width:250px; position: relative;">
+    <input type="hidden" class="form-control attr_item_show" name="attr_item_show_{$goods_attr['id']}[]" value="{$options['status']}" />
+    <input type="hidden" class="form-control attr_item_id" name="attr_item_id_{$goods_attr['id']}[]" value="{$options['id']}" />
+
+    <div class="input-group">
+		<span class="input-group-addon">
+			<input type="checkbox" {if $options['status']==1}checked{/if} value="1" onclick='showAttrItem(this)'>
+		</span>
+        <input type="text" class="form-control attr_item_title" name="attr_item_title_{$goods_attr['id']}[]" VALUE="{$options['name']}" />
+        <span class="input-group-addon">
+			<a href="javascript:;" onclick="removeAttrItem(this)" title='删除'><i class="fa fa-times"></i></a>
+	  		<a href="javascript:;" class="fa fa-arrows deam-item" title="拖动调整显示顺序" ></a>
+		</span>
+    </div>
+</div>
