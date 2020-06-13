@@ -13,7 +13,7 @@ class Deam_foodModuleSite extends WeModuleSite {
 		global $_W,$_GPC;
 		$menuArr = array(
             array(
-            	'title' => '幻灯片管理00',
+            	'title' => '幻灯片管理',
                 'is_display' => '1',
                 'icon' => 'icon icon-swipe-copy',
                 'url' => $this->createWebUrl('adv'),
